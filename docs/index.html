@@ -705,9 +705,15 @@ function wire() {
     }
     err.hidden = true; setAll(s); input.value = toCode(state);
   };
-  $('load-code').addEventListener('click', apply);
+  // Leaving the field shows the current design's code again, except on the way to Load:
+  // a click on Load blurs the field before the click lands, which used to wipe a pasted code.
+  const loadBtn = $('load-code');
+  const showCurrent = () => { if (err.hidden) input.value = toCode(state); };
+  loadBtn.addEventListener('mousedown', e => e.preventDefault()); // keep focus (and the typed code) in the field
+  loadBtn.addEventListener('click', apply);
+  loadBtn.addEventListener('blur', e => { if (e.relatedTarget !== input) showCurrent(); });
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
-  input.addEventListener('blur', () => { if (err.hidden) input.value = toCode(state); });
+  input.addEventListener('blur', e => { if (e.relatedTarget !== loadBtn) showCurrent(); });
   $('copy-code').addEventListener('click', () => copyText(toCode(state), input));
   window.addEventListener('hashchange', () => { const s = fromCode(location.hash); if (s) setAll(s); });
 }
