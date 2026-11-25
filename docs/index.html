@@ -152,6 +152,9 @@ button{font:inherit;color:inherit}
 
 footer{border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.88rem;display:flex;flex-direction:column;gap:6px}
 footer p{margin:0;max-width:78ch}
+footer a{color:var(--gold);text-underline-offset:2px}
+footer a:hover{color:var(--ink)}
+footer .addons{color:var(--ink);margin-bottom:4px}
 
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raised);color:var(--ink);border:1px solid var(--gold-dim);border-radius:var(--r);padding:8px 14px;font-size:.92rem;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:20;max-width:calc(100% - 32px)}
 
@@ -332,6 +335,7 @@ footer p{margin:0;max-width:78ch}
   </section>
 
   <footer>
+    <p class="addons">More World of Warcraft addons from the same maker: <a href="https://www.curseforge.com/wow/addons/waymarker" target="_blank" rel="noopener">WayMarker</a> explains every quest, item and NPC and puts a marker on your next step. <a href="https://www.curseforge.com/wow/addons/markerbuddy" target="_blank" rel="noopener">MarkerBuddy</a> marks the pull with one key: casters on Skull and Cross, crowd control for the classes in your group.</p>
     <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in WoW Forever, Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
     <p>Cloth colors were measured from the in-game tabard textures, so the preview matches the tabard you wear. Crest API colors are the GuildColor values that Blizzard's guild crest and the Armory use; they are often darker or a slightly different hue.</p>
     <p>Worn in game shows the playable races of WoW Forever: the eight original races and the Skyborne. It uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
