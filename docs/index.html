@@ -138,7 +138,7 @@ button{font:inherit;color:inherit}
 
 /* saved */
 .saved{display:flex;flex-direction:column;gap:12px}
-.saved .sec-h h2{font:400 1.25rem var(--f-display);text-transform:none;letter-spacing:.03em;color:var(--gold)}
+.saved .sec-h h2,.addons .sec-h h2{font:400 1.25rem var(--f-display);text-transform:none;letter-spacing:.03em;color:var(--gold)}
 .empty{margin:0;color:var(--muted)}
 .saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
 .saved-item{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
@@ -152,9 +152,17 @@ button{font:inherit;color:inherit}
 
 footer{border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.88rem;display:flex;flex-direction:column;gap:6px}
 footer p{margin:0;max-width:78ch}
-footer a{color:var(--gold);text-underline-offset:2px}
-footer a:hover{color:var(--ink)}
-footer .addons{color:var(--ink);margin-bottom:4px}
+.addons{display:flex;flex-direction:column;gap:12px}
+.addon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.addon{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:start;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);color:inherit;text-decoration:none;transition:border-color .15s,background-color .15s}
+.addon:hover{border-color:var(--gold-dim);background:var(--raised)}
+.addon img{width:72px;height:72px}
+.addon-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.addon-name{font:400 1.2rem/1.15 var(--f-display);color:var(--gold);letter-spacing:.03em}
+.addon-desc{color:var(--muted);font-size:.95rem;line-height:1.4}
+.addon-cta{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem;color:var(--ink);margin-top:2px}
+.addon:hover .addon-cta{color:var(--gold)}
+.addon-cta svg{width:.8em;height:.8em;flex:none}
 
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raised);color:var(--ink);border:1px solid var(--gold-dim);border-radius:var(--r);padding:8px 14px;font-size:.92rem;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:20;max-width:calc(100% - 32px)}
 
@@ -336,8 +344,29 @@ footer .addons{color:var(--ink);margin-bottom:4px}
     <div class="saved-grid" id="saved-grid"></div>
   </section>
 
+  <section class="addons" aria-labelledby="addons-h">
+    <div class="sec-h"><h2 id="addons-h">More addons from the same maker</h2><span class="meta">free on CurseForge</span></div>
+    <div class="addon-grid">
+      <a class="addon" href="https://www.curseforge.com/wow/addons/waymarker" target="_blank" rel="noopener">
+        <img src="img/addon-waymarker.webp" alt="" width="72" height="72" loading="lazy">
+        <span class="addon-body">
+          <span class="addon-name">WayMarker</span>
+          <span class="addon-desc">Every quest, item and NPC explained: what to do, where to go, where to get an item and whether you can delete it. One click marks your next step.</span>
+          <span class="addon-cta">Get it on CurseForge <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5H2.5v7h7v-2M7 2.5h2.5V5M9.5 2.5 5 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </span>
+      </a>
+      <a class="addon" href="https://www.curseforge.com/wow/addons/markerbuddy" target="_blank" rel="noopener">
+        <img src="img/addon-markerbuddy.webp" alt="" width="72" height="72" loading="lazy">
+        <span class="addon-body">
+          <span class="addon-name">MarkerBuddy</span>
+          <span class="addon-desc">Marks the pull with one key: casters on Skull and Cross, crowd control for the classes in your group.</span>
+          <span class="addon-cta">Get it on CurseForge <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5H2.5v7h7v-2M7 2.5h2.5V5M9.5 2.5 5 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </span>
+      </a>
+    </div>
+  </section>
+
   <footer>
-    <p class="addons">More World of Warcraft addons from the same maker: <a href="https://www.curseforge.com/wow/addons/waymarker" target="_blank" rel="noopener">WayMarker</a> explains every quest, item and NPC and puts a marker on your next step. <a href="https://www.curseforge.com/wow/addons/markerbuddy" target="_blank" rel="noopener">MarkerBuddy</a> marks the pull with one key: casters on Skull and Cross, crowd control for the classes in your group.</p>
     <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in WoW Forever, Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
     <p>Cloth colors were measured from the in-game tabard textures, so the preview matches the tabard you wear. Crest API colors are the GuildColor values that Blizzard's guild crest and the Armory use; they are often darker or a slightly different hue.</p>
     <p>Worn in game shows the playable races of WoW Forever: the eight original races and the Skyborne. It uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
