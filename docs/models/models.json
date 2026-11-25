@@ -1,0 +1,164 @@
+{
+ "human_male": {
+  "v": 4229,
+  "body": 19818,
+  "hair": 876,
+  "extra": 0,
+  "height": 2.025,
+  "hairTex": true
+ },
+ "human_female": {
+  "v": 4350,
+  "body": 18522,
+  "hair": 948,
+  "extra": 0,
+  "height": 1.887,
+  "hairTex": true
+ },
+ "orc_male": {
+  "v": 4174,
+  "body": 19038,
+  "hair": 588,
+  "extra": 0,
+  "height": 2.1,
+  "hairTex": true
+ },
+ "orc_female": {
+  "v": 4215,
+  "body": 19308,
+  "hair": 582,
+  "extra": 0,
+  "height": 2.013,
+  "hairTex": true
+ },
+ "dwarf_male": {
+  "v": 3915,
+  "body": 18468,
+  "hair": 480,
+  "extra": 0,
+  "height": 1.528,
+  "hairTex": true
+ },
+ "dwarf_female": {
+  "v": 4258,
+  "body": 18258,
+  "hair": 558,
+  "extra": 0,
+  "height": 1.491,
+  "hairTex": true
+ },
+ "nightelf_male": {
+  "v": 3440,
+  "body": 16023,
+  "hair": 660,
+  "extra": 0,
+  "height": 2.397,
+  "hairTex": true
+ },
+ "nightelf_female": {
+  "v": 3353,
+  "body": 15804,
+  "hair": 738,
+  "extra": 0,
+  "height": 2.242,
+  "hairTex": true
+ },
+ "scourge_male": {
+  "v": 4713,
+  "body": 19776,
+  "hair": 432,
+  "extra": 0,
+  "height": 1.757,
+  "hairTex": true
+ },
+ "scourge_female": {
+  "v": 4619,
+  "body": 18834,
+  "hair": 432,
+  "extra": 0,
+  "height": 1.8,
+  "hairTex": true
+ },
+ "tauren_male": {
+  "v": 5759,
+  "body": 20490,
+  "hair": 1080,
+  "extra": 3696,
+  "height": 3.033,
+  "hairTex": true,
+  "extraTex": true
+ },
+ "tauren_female": {
+  "v": 5859,
+  "body": 20400,
+  "hair": 792,
+  "extra": 3024,
+  "height": 2.763,
+  "hairTex": true,
+  "extraTex": true
+ },
+ "gnome_male": {
+  "v": 3481,
+  "body": 15744,
+  "hair": 426,
+  "extra": 0,
+  "height": 1.137,
+  "hairTex": true
+ },
+ "gnome_female": {
+  "v": 3443,
+  "body": 15306,
+  "hair": 480,
+  "extra": 0,
+  "height": 1.091,
+  "hairTex": true
+ },
+ "troll_male": {
+  "v": 3884,
+  "body": 17874,
+  "hair": 528,
+  "extra": 0,
+  "height": 2.326,
+  "hairTex": true
+ },
+ "troll_female": {
+  "v": 3943,
+  "body": 18510,
+  "hair": 528,
+  "extra": 0,
+  "height": 2.37,
+  "hairTex": true
+ },
+ "bloodelf_male": {
+  "v": 3937,
+  "body": 17607,
+  "hair": 1788,
+  "extra": 0,
+  "height": 2.16,
+  "hairTex": true
+ },
+ "bloodelf_female": {
+  "v": 3657,
+  "body": 17442,
+  "hair": 744,
+  "extra": 0,
+  "height": 1.967,
+  "hairTex": true
+ },
+ "draenei_male": {
+  "v": 4119,
+  "body": 19068,
+  "hair": 480,
+  "extra": 0,
+  "height": 2.442,
+  "hairTex": true
+ },
+ "draenei_female": {
+  "v": 4130,
+  "body": 18780,
+  "hair": 666,
+  "extra": 0,
+  "height": 2.315,
+  "hairTex": true
+ }
+}

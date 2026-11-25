@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Design a World of Warcraft guild tabard with exactly the vendor's options, then see it worn in 3D on the game's own character models.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>Guild Tabard Designer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Marcellus+SC&display=swap">
+<style>
+/* Layout: a vendor counter. The tabard hangs under a spotlight with the five in-game selectors below it; beside it, a pattern book holding every option the vendor offers. One dark look by choice. */
+:root{
+  color-scheme: dark;
+  --ground:#0f121a;
+  --panel:#161a24;
+  --raised:#1e2331;
+  --line:#2b3143;
+  --ink:#ece6d6;
+  --muted:#a29c8e;
+  --gold:#ffd100;
+  --gold-dim:#a88a24;
+  --on-gold:#1b1503;
+  --spot:#27324d;
+  --focus:#8fb8ff;
+  --warn:#ff9a86;
+  --edge:rgba(255,255,255,.16);
+  --f-display:"Marcellus SC","Palatino Linotype","Book Antiqua",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:6px;
+  --cloth:#082560;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+html,body{background:var(--ground);color:var(--ink)}
+body{font:16px/1.5 var(--f-body)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit;color:inherit}
+
+.page{max-width:1200px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+
+.masthead{display:flex;flex-direction:column;gap:8px}
+.masthead h1{margin:0;font:400 clamp(2rem,4.4vw,2.75rem)/1.05 var(--f-display);color:var(--gold);letter-spacing:.02em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:64ch}
+.lede b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+
+.bench{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:880px){.bench{grid-template-columns:minmax(0,1fr)}}
+
+/* stage */
+.stage{display:flex;flex-direction:column;gap:16px;min-width:0}
+.spot{display:grid;place-items:center;padding-block:8px 0;background:radial-gradient(closest-side,var(--spot),transparent);min-height:200px}
+#preview{display:block;width:min(100%,360px);height:auto;aspect-ratio:216/240;max-width:100%;filter:drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+.loading{color:var(--muted);font-size:.95rem;text-align:center;margin:0}
+
+.seg{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.tiny{font-size:.76rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.seg-btns{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg-btns button{appearance:none;border:0;background:transparent;color:var(--muted);font-weight:500;font-size:.92rem;padding:5px 12px;cursor:pointer}
+.seg-btns button+button{border-left:1px solid var(--line)}
+.seg-btns button:hover{color:var(--ink)}
+.seg-btns button[aria-pressed="true"]{background:var(--raised);color:var(--gold)}
+
+.vendor{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:2px}
+.vrow{display:grid;grid-template-columns:minmax(0,1fr) 34px 118px 34px;align-items:center;gap:6px;padding:4px 4px 4px 10px;border-radius:4px}
+.vrow:hover{background:var(--raised)}
+.vrow .name{color:var(--gold);font:400 1.04rem/1.2 var(--f-display);letter-spacing:.03em;min-width:0}
+.arrow{appearance:none;width:34px;height:32px;display:grid;place-items:center;border:1px solid var(--line);background:var(--raised);color:var(--ink);border-radius:4px;cursor:pointer;padding:0}
+.arrow:hover{border-color:var(--gold-dim);color:var(--gold)}
+.arrow:active{transform:translateY(1px)}
+.arrow svg{width:14px;height:14px}
+.vval{display:flex;align-items:center;justify-content:center;gap:8px;font:500 .9rem var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vval .dot{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--edge);flex:none}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--raised);color:var(--ink);font-weight:500;font-size:.95rem;cursor:pointer}
+.btn:hover{border-color:var(--gold-dim)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--on-gold);font-weight:700}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn svg{width:16px;height:16px}
+
+.code{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.code label{grid-column:1/-1}
+.code input{width:100%;min-width:0;padding:8px 10px;border-radius:var(--r);border:1px solid var(--line);background:var(--ground);color:var(--ink);font:500 .95rem var(--f-mono);font-variant-numeric:tabular-nums}
+.code input:focus{border-color:var(--gold-dim)}
+.err{margin:0;color:var(--warn);font-size:.9rem}
+.hint{margin:0;color:var(--muted);font-size:.9rem}
+
+/* pattern book */
+.book{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-width:0;--tile-bg:var(--cloth)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding-inline:10px;overflow-x:auto}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:13px 12px 10px;color:var(--muted);font:400 1.08rem var(--f-display);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold)}
+.tabpanel{padding:16px;display:flex;flex-direction:column;gap:12px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sec-h h2{margin:0;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.sec-h .meta{font:500 .82rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.sec-gap{margin-top:8px}
+
+.sw17{display:grid;grid-template-columns:repeat(17,minmax(0,1fr));gap:4px;max-width:640px}
+.bg51{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;max-width:640px}
+.sw{appearance:none;border:0;padding:0;aspect-ratio:1;max-width:100%;border-radius:4px;cursor:pointer;box-shadow:inset 0 0 0 1px var(--edge)}
+.sw:hover{transform:scale(1.08)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--gold);position:relative;z-index:1}
+
+.emblems{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;max-height:min(58vh,540px);overflow-y:auto;padding:6px;margin:-6px;overscroll-behavior:contain}
+.tile{appearance:none;border:0;padding:3px;border-radius:5px;background:var(--tile-bg);cursor:pointer;aspect-ratio:1;max-width:100%;box-shadow:inset 0 0 0 1px var(--edge)}
+.tile canvas{display:block;width:100%;height:100%}
+.tile:hover{filter:brightness(1.15)}
+.tile[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--gold)}
+.borders{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;max-width:560px}
+.borders .tile{aspect-ratio:147/159;padding:4px}
+.note{margin:0;color:var(--muted);font-size:.9rem;max-width:62ch}
+
+.colors{border-top:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:10px}
+.chip{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:center;background:var(--ground);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.chip-sw{width:40px;height:40px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--edge)}
+.chip-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.chip-name{font-size:.82rem;color:var(--muted)}
+.chip-name span{font-family:var(--f-mono);font-size:.76rem}
+.hex{appearance:none;border:0;background:none;padding:0;cursor:pointer;text-align:left;font:500 .98rem var(--f-mono);color:var(--ink)}
+.hex:hover{color:var(--gold)}
+.hex.small{font-size:.8rem;color:var(--muted)}
+.chip-api{font-size:.8rem;color:var(--muted)}
+.ids{margin:0;font:400 .82rem var(--f-mono);color:var(--muted);overflow-wrap:anywhere}
+.ids b{color:var(--ink);font-weight:500}
+
+/* saved */
+.saved{display:flex;flex-direction:column;gap:12px}
+.saved .sec-h h2{font:400 1.25rem var(--f-display);text-transform:none;letter-spacing:.03em;color:var(--gold)}
+.empty{margin:0;color:var(--muted)}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.saved-item{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.saved-item .load{appearance:none;border:0;background:none;width:100%;padding:8px 8px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.saved-item .load:hover{background:var(--raised)}
+.saved-item img{width:100%;max-width:100%;aspect-ratio:216/240;height:auto}
+.saved-item .load span{font:500 .74rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.saved-item .del{appearance:none;position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:4px;border:1px solid var(--line);background:var(--ground);color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
+.saved-item .del:hover{color:var(--warn);border-color:var(--warn)}
+.saved-item .del svg{width:12px;height:12px}
+
+footer{border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.88rem;display:flex;flex-direction:column;gap:6px}
+footer p{margin:0;max-width:78ch}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raised);color:var(--ink);border:1px solid var(--gold-dim);border-radius:var(--r);padding:8px 14px;font-size:.92rem;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:20;max-width:calc(100% - 32px)}
+
+/* worn view */
+.viewbar{display:flex;justify-content:center}
+.viewbar .seg-btns button{font-size:.95rem;padding:6px 14px}
+.spot.worn{position:relative;padding-block:0}
+#worn-canvas{display:block;width:min(100%,400px);max-width:100%;aspect-ratio:3/4;height:auto;touch-action:none;cursor:grab;border-radius:var(--r)}
+#worn-canvas:active{cursor:grabbing}
+.worn-status{position:absolute;inset:auto 0 45% 0;margin:0;text-align:center;color:var(--muted);font-size:.95rem;padding-inline:16px}
+.worn-controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.worn-controls select{appearance:auto;background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:5px 8px;font:500 .92rem var(--f-body);max-width:100%}
+.worn-controls select:focus{border-color:var(--gold-dim)}
+.ctl{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-width:0}
+
+@media (max-width:440px){
+  .vrow{grid-template-columns:minmax(0,1fr) 32px 104px 32px;padding-left:6px}
+  .vrow .name{font-size:.95rem}
+  .sw17,.bg51{gap:3px}
+  .tabpanel,.colors{padding:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.sw:hover{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Guild Tabard Designer</h1>
+    <p class="lede">The same choices as the guild tabard vendor in World of Warcraft, nothing added and nothing left out: <b>196</b> emblems in <b>17</b> colors, <b>6</b> borders in <b>17</b> colors and <b>51</b> background colors. Switch to <b>Worn in game</b> to see it on any of <b>10</b> races.</p>
+  </header>
+
+  <main class="bench">
+    <section class="stage" aria-label="Tabard preview">
+      <div class="viewbar">
+        <div class="seg-btns" role="group" aria-label="View">
+          <button type="button" id="view-crest" data-view="crest" aria-pressed="true">Crest</button>
+          <button type="button" id="view-worn" data-view="worn" aria-pressed="false">Worn in game</button>
+        </div>
+      </div>
+
+      <div class="spot" id="spot-crest">
+        <img id="preview" alt="Preview of your guild tabard" width="216" height="240" hidden>
+        <p class="loading" id="loading">Loading the vendor's patterns…</p>
+      </div>
+
+      <div class="spot worn" id="spot-worn" hidden>
+        <canvas id="worn-canvas" tabindex="0" aria-label="Character wearing your tabard. Drag or use the arrow keys to turn."></canvas>
+        <p class="worn-status" id="worn-status">Loading the character…</p>
+      </div>
+
+      <div class="worn-controls" id="worn-controls" hidden>
+        <span class="ctl"><label class="tiny" for="race">Race</label>
+        <select id="race">
+          <optgroup label="Alliance">
+            <option value="human">Human</option>
+            <option value="dwarf">Dwarf</option>
+            <option value="nightelf">Night Elf</option>
+            <option value="gnome">Gnome</option>
+            <option value="draenei">Draenei</option>
+          </optgroup>
+          <optgroup label="Horde">
+            <option value="orc">Orc</option>
+            <option value="scourge">Undead</option>
+            <option value="tauren">Tauren</option>
+            <option value="troll">Troll</option>
+            <option value="bloodelf">Blood Elf</option>
+          </optgroup>
+        </select></span>
+        <div class="seg-btns" role="group" aria-label="Body type">
+          <button type="button" id="sex-male" data-sex="male" aria-pressed="true">Male</button>
+          <button type="button" id="sex-female" data-sex="female" aria-pressed="false">Female</button>
+        </div>
+        <span class="ctl"><label class="tiny" for="belt">Belt</label>
+        <select id="belt">
+          <option value="none">Hide belt</option>
+          <optgroup label="Tier 1 · Molten Core">
+            <option value="might">Belt of Might · Warrior</option>
+            <option value="lawbringer">Lawbringer Belt · Paladin</option>
+            <option value="giantstalker">Giantstalker's Belt · Hunter</option>
+            <option value="nightslayer">Nightslayer Belt · Rogue</option>
+            <option value="prophecy">Girdle of Prophecy · Priest</option>
+            <option value="earthfury">Earthfury Belt · Shaman</option>
+            <option value="arcanist">Arcanist Belt · Mage</option>
+            <option value="felheart">Felheart Belt · Warlock</option>
+            <option value="cenarion">Cenarion Belt · Druid</option>
+          </optgroup>
+        </select></span>
+        <div class="seg-btns" role="group" aria-label="Camera">
+          <button type="button" id="cam-front" data-cam="front">Front</button>
+          <button type="button" id="cam-back" data-cam="back">Back</button>
+          <button type="button" id="cam-close" data-cam="close" aria-pressed="false">Close-up</button>
+        </div>
+      </div>
+
+      <div class="seg" id="ring-row">
+        <span class="tiny">Armory ring</span>
+        <div class="seg-btns" role="group" aria-label="Armory ring">
+          <button type="button" id="ring-alliance" data-ring="alliance" aria-pressed="true">Alliance</button>
+          <button type="button" id="ring-horde" data-ring="horde" aria-pressed="false">Horde</button>
+          <button type="button" id="ring-none" data-ring="none" aria-pressed="false">None</button>
+        </div>
+      </div>
+
+      <div class="vendor" id="vendor" role="group" aria-label="Vendor selectors"></div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="save">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          Save design
+        </button>
+        <button type="button" class="btn" id="random">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="5.5" r="1.2" fill="currentColor"/><circle cx="10.5" cy="10.5" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/></svg>
+          Random
+        </button>
+      </div>
+
+      <div class="code">
+        <label class="tiny" for="code">Design code</label>
+        <input id="code" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="code-help code-err">
+        <button type="button" class="btn" id="load-code">Load</button>
+        <button type="button" class="btn" id="copy-code">Copy</button>
+      </div>
+      <p class="err" id="code-err" role="alert" hidden></p>
+      <p class="hint" id="code-help">Emblem, emblem color, border, border color and background, in the order the vendor shows them. The page address follows the design, so a shared link opens this tabard. In the Crest view, right-click or long-press the tabard to save it as an image.</p>
+    </section>
+
+    <section class="book" id="book" aria-label="Pattern book">
+      <div class="tabs" role="tablist" aria-label="Tabard parts">
+        <button type="button" class="tab" role="tab" id="tab-emblem" aria-controls="panel-emblem" aria-selected="true">Emblem</button>
+        <button type="button" class="tab" role="tab" id="tab-border" aria-controls="panel-border" aria-selected="false" tabindex="-1">Border</button>
+        <button type="button" class="tab" role="tab" id="tab-bg" aria-controls="panel-bg" aria-selected="false" tabindex="-1">Background</button>
+      </div>
+
+      <div class="tabpanel" id="panel-emblem" role="tabpanel" aria-labelledby="tab-emblem">
+        <div class="sec-h"><h2>Emblem color</h2><span class="meta" id="meta-emblemColor"></span></div>
+        <div class="sw17" id="sw-emblemColor"></div>
+        <div class="sec-h sec-gap"><h2>Emblem</h2><span class="meta" id="meta-emblem"></span></div>
+        <div class="emblems" id="grid-emblem"></div>
+      </div>
+
+      <div class="tabpanel" id="panel-border" role="tabpanel" aria-labelledby="tab-border" hidden>
+        <div class="sec-h"><h2>Border</h2><span class="meta" id="meta-border"></span></div>
+        <div class="borders" id="grid-border"></div>
+        <div class="sec-h sec-gap"><h2>Border color</h2><span class="meta" id="meta-borderColor"></span></div>
+        <div class="sw17" id="sw-borderColor"></div>
+      </div>
+
+      <div class="tabpanel" id="panel-bg" role="tabpanel" aria-labelledby="tab-bg" hidden>
+        <div class="sec-h"><h2>Background color</h2><span class="meta" id="meta-bg"></span></div>
+        <div class="bg51" id="sw-bg"></div>
+        <p class="note">The game lists background colors in sets of three, light to dark, so each column here is one set. The vendor's arrows step through them top to bottom, column by column.</p>
+      </div>
+
+      <div class="colors">
+        <div class="sec-h"><h2>Colors in this design</h2><span class="meta">click a value to copy it</span></div>
+        <div class="chips" id="chips"></div>
+        <p class="ids" id="ids"></p>
+      </div>
+    </section>
+  </main>
+
+  <section class="saved" aria-labelledby="saved-h">
+    <div class="sec-h"><h2 id="saved-h">Saved designs</h2><span class="meta">kept in this browser only</span></div>
+    <p class="empty" id="saved-empty">Nothing saved yet. Press Save design to keep the current tabard here.</p>
+    <div class="saved-grid" id="saved-grid"></div>
+  </section>
+
+  <footer>
+    <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
+    <p>Cloth colors were measured from the in-game tabard textures, so the preview matches the tabard you wear. Crest API colors are the GuildColor values that Blizzard's guild crest and the Armory use; they are often darker or a slightly different hue.</p>
+    <p>Worn in game uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
+    <p>Crest artwork from Blizzard's Armory tabard renderer; models and textures from the game client. World of Warcraft is a trademark of Blizzard Entertainment.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+// swatch (in-game cloth) : crest API (GuildColor DB2) : tint factors x1000 for the grey artwork
+const PAL = {
+  EMBLEM: '960741:670021:898,40,388 952402:672300:895,218,13 955606:674500:897,519,34 957004:675600:898,671,23 968d05:636700:899,849,33 869808:516700:807,913,48 619807:376700:580,913,42 0f991b:00671f:88,916,161 10986e:006757:95,913,658 0e7b95:004867:85,738,893 114c88:092a5d:99,459,814 700c87:56095d:673,73,810 880d80:5d094f:816,78,767 7a480f:54370a:735,432,89 e7eddb:b1b8b1:1390,1422,1314 3f4d43:101517:376,465,400 e1d464:dfa55a:1351,1272,603',
+  BORDER: '9a0b3f:670021:1337,99,551 9a2f06:672300:1338,411,48 9e6105:674500:1376,845,40 9f7b03:675600:1381,1074,27 9f9a05:639400:1383,1342,43 8ba104:63a300:1207,1402,33 62a105:63b300:854,1403,45 0ea11e:00671f:124,1402,265 0fa078:008e90:134,1394,1047 0d7ea0:006793:111,1093,1389 114d90:00317c:151,673,1257 7a0f8e:6d0077:1058,132,1236 901083:7b0067:1253,136,1144 82500d:54370a:1130,693,111 e5eddf:ffffff:1995,2065,1940 414b45:0f1415:563,656,601 e3d47a:f9cc30:1972,1844,1064',
+  BACKGROUND: 'd3226f:ff2088:1886,308,996 aa0748:bd005b:1518,58,641 790517:9e0036:1082,45,207 d66619:ff891b:1912,916,227 b43f04:e14500:1606,564,36 850e02:b1002e:1191,122,21 e59e17:ffb317:2047,1411,203 cb7206:f68700:1820,1018,51 9c4004:ae4b00:1394,569,39 e9d912:fffc14:2083,1945,165 d0a907:f3ca00:1860,1507,67 a07706:c49b00:1427,1060,49 e5e911:ffff14:2048,2085,150 bab906:d8dd00:1660,1653,56 888705:a6ac00:1220,1206,49 cdd614:e3f618:1837,1918,182 9ea508:b7c003:1417,1475,68 6d7305:8e9700:977,1029,46 96cf18:bcf61b:1338,1851,212 6c9c07:88ba03:962,1399,66 3a6b04:588000:519,954,39 1bd463:1eff68:241,1893,888 0e9e3f:04c347:125,1417,565 096d0e:00820f:85,971,125 1ad2ab:1ef7c1:235,1880,1531 0e9e7d:04b78f:127,1412,1119 0b6c4c:009061:95,966,680 1cafd2:21dcff:249,1568,1879 0d7e9c:009dc5:118,1123,1394 094c6b:006391:84,677,957 4783c7:4d8eda:635,1173,1777 225791:2c6aae:302,780,1298 082560:003582:68,333,859 cb57e1:d34ac8:1819,781,2013 9733ad:ad29ac:1349,456,1548 66077c:860f9a:913,59,1109 d922d4:ff38fa:1940,303,1897 a9079d:c900c3:1515,61,1402 78056c:9b00a6:1077,47,967 d923a6:ff1fbf:1942,309,1487 a90772:d30087:1512,60,1019 790541:a30068:1080,46,582 a3732b:c58132:1462,1026,385 6f480f:875513:993,644,134 562a08:4f2300:766,372,70 414b44:232323:579,667,605 656c62:646464:900,964,874 919c8c:b4bba8:1300,1391,1255 b4beae:d7ddcb:1608,1701,1560 e3e9dc:ffffff:2032,2085,1964 ec8da8:fc6891:2111,1262,1500'
+};
+const parsePal = s => s.split(' ').map((e, i) => {
+  const [c, a, f] = e.split(':');
+  return { i, cloth: '#' + c, api: '#' + a, f: f.split(',').map(n => +n / 1000) };
+});
+const COLORS = { emblemColor: parsePal(PAL.EMBLEM), borderColor: parsePal(PAL.BORDER), bg: parsePal(PAL.BACKGROUND) };
+const EC = COLORS.emblemColor, BC = COLORS.borderColor, BG = COLORS.bg;
+
+const FIELDS = ['emblem', 'emblemColor', 'border', 'borderColor', 'bg'];
+const COUNT = { emblem: 196, emblemColor: 17, border: 6, borderColor: 17, bg: 51 };
+const LABEL = { emblem: 'Emblem', emblemColor: 'Emblem color', border: 'Border', borderColor: 'Border color', bg: 'Background' };
+const DEFAULT = { emblem: 128, emblemColor: 16, border: 3, borderColor: 16, bg: 32 };
+const state = { ...DEFAULT, ring: 'alliance' };
+
+const $ = id => document.getElementById(id);
+const els = {}; // field -> array of option elements
+let ready = false;
+
+// ---------- design code (1-based, as the vendor counts) ----------
+const toCode = s => FIELDS.map(k => s[k] + 1).join('-');
+function fromCode(str) {
+  const m = String(str || '').trim().replace(/^#?(t-)?/i, '').match(/^(\d{1,3})-(\d{1,2})-(\d{1,2})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) return null;
+  const out = {};
+  for (let j = 0; j < 5; j++) {
+    const v = +m[j + 1] - 1;
+    if (v < 0 || v >= COUNT[FIELDS[j]]) return null;
+    out[FIELDS[j]] = v;
+  }
+  return out;
+}
+
+// ---------- artwork ----------
+const SRC = { emblems: 'img/emblems.png', borders: 'img/borders.png', bg: 'img/bg_00.png', shadow: 'img/shadow_00.png',
+  overlay: 'img/overlay_00.png', hooks: 'img/hooks.png', alliance: 'img/ring-alliance.png', horde: 'img/ring-horde.png' };
+const IM = {};
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(src)); i.src = src; });
+
+function tinted(img, sx, sy, sw, sh, dw, dh, f) {
+  const c = document.createElement('canvas'); c.width = dw; c.height = dh;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  x.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+  const d = x.getImageData(0, 0, dw, dh), p = d.data, r = f[0], g = f[1], b = f[2];
+  for (let i = 0; i < p.length; i += 4) {
+    if (p[i + 3]) { p[i] = p[i] * r; p[i + 1] = p[i + 1] * g; p[i + 2] = p[i + 2] * b; }
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+const cache = new Map();
+function cached(key, make) {
+  if (cache.has(key)) { const v = cache.get(key); cache.delete(key); cache.set(key, v); return v; }
+  const v = make(); cache.set(key, v);
+  if (cache.size > 60) cache.delete(cache.keys().next().value);
+  return v;
+}
+const W = 216, H = 240;
+function drawDesign(s, ring, S) {
+  const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  const put = (src, dx, dy, dw, dh) => x.drawImage(src, dx * S, dy * S, dw * S, dh * S);
+  if (ring !== 'none') put(IM[ring], 0, 0, 216, 216);
+  put(IM.shadow, 18, 27, 179, 210);
+  put(cached(`bg${s.bg}@${S}`, () => tinted(IM.bg, 0, 0, 179, 210, 179 * S, 210 * S, BG[s.bg].f)), 18, 27, 179, 210);
+  put(IM.overlay, 18, 27, 179, 210);
+  put(cached(`b${s.border}.${s.borderColor}@${S}`, () => tinted(IM.borders, s.border * 147, 0, 147, 159, 147 * S, 159 * S, BC[s.borderColor].f)), 31, 40, 147, 159);
+  put(cached(`e${s.emblem}.${s.emblemColor}@${S}`, () => tinted(IM.emblems, (s.emblem % 14) * 125, Math.floor(s.emblem / 14) * 125, 125, 125, 125 * S, 125 * S, EC[s.emblemColor].f)), 33, 57, 125, 125);
+  put(IM.hooks, 18, 27, 179, 32);
+  return c;
+}
+
+let renderQueued = false;
+function scheduleRender() {
+  if (!ready || renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => {
+    renderQueued = false;
+    const img = $('preview');
+    img.src = drawDesign(state, state.ring, 3).toDataURL('image/png');
+    img.hidden = false; $('loading').hidden = true;
+  });
+}
+
+// ---------- build controls ----------
+const chevron = d => `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function buildVendor() {
+  $('vendor').innerHTML = FIELDS.map(k => `
+    <div class="vrow">
+      <span class="name" id="lbl-${k}">${LABEL[k]}</span>
+      <button type="button" class="arrow" id="prev-${k}" data-step="${k}" data-dir="-1" aria-label="Previous ${LABEL[k].toLowerCase()}">${chevron('M10 3 5 8l5 5')}</button>
+      <output class="vval" id="val-${k}" aria-labelledby="lbl-${k}"></output>
+      <button type="button" class="arrow" id="next-${k}" data-step="${k}" data-dir="1" aria-label="Next ${LABEL[k].toLowerCase()}">${chevron('m6 3 5 5-5 5')}</button>
+    </div>`).join('');
+}
+function buildSwatches(k) {
+  const box = $('sw-' + k);
+  els[k] = COLORS[k].map(c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sw'; b.dataset.k = k; b.dataset.i = c.i;
+    b.style.background = c.cloth;
+    b.setAttribute('aria-pressed', 'false');
+    b.setAttribute('aria-label', `${LABEL[k]} ${c.i + 1} of ${COUNT[k]}`);
+    b.title = `${c.i + 1} · ${c.cloth}`;
+    box.appendChild(b);
+    return b;
+  });
+}
+const emblemCanvases = [], borderCanvases = [];
+function buildTiles() {
+  const g = $('grid-emblem');
+  els.emblem = [];
+  for (let i = 0; i < 196; i++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tile'; b.dataset.k = 'emblem'; b.dataset.i = i;
+    b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `Emblem ${i + 1} of 196`); b.title = `Emblem ${i + 1}`;
+    const cv = document.createElement('canvas'); cv.width = 112; cv.height = 112;
+    b.appendChild(cv); g.appendChild(b);
+    els.emblem.push(b); emblemCanvases.push(cv);
+  }
+  const gb = $('grid-border');
+  els.border = [];
+  for (let i = 0; i < 6; i++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tile'; b.dataset.k = 'border'; b.dataset.i = i;
+    b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `Border ${i + 1} of 6`); b.title = `Border ${i + 1}`;
+    const cv = document.createElement('canvas'); cv.width = 147; cv.height = 159;
+    b.appendChild(cv); gb.appendChild(b);
+    els.border.push(b); borderCanvases.push(cv);
+  }
+}
+function paintEmblemTiles() {
+  if (!ready) return;
+  const cell = 112, atlas = tinted(IM.emblems, 0, 0, 1750, 1750, 14 * cell, 14 * cell, EC[state.emblemColor].f);
+  emblemCanvases.forEach((cv, i) => {
+    const x = cv.getContext('2d'); x.clearRect(0, 0, cell, cell);
+    x.drawImage(atlas, (i % 14) * cell, Math.floor(i / 14) * cell, cell, cell, 0, 0, cell, cell);
+  });
+}
+function paintBorderTiles() {
+  if (!ready) return;
+  const strip = tinted(IM.borders, 0, 0, 882, 159, 882, 159, BC[state.borderColor].f);
+  borderCanvases.forEach((cv, i) => {
+    const x = cv.getContext('2d'); x.clearRect(0, 0, 147, 159);
+    x.drawImage(strip, i * 147, 0, 147, 159, 0, 0, 147, 159);
+  });
+}
+const CHIP_KEYS = [['bg', 'Background'], ['borderColor', 'Border'], ['emblemColor', 'Emblem']];
+function buildChips() {
+  $('chips').innerHTML = CHIP_KEYS.map(([k, name]) => `
+    <div class="chip">
+      <span class="chip-sw" id="cs-${k}"></span>
+      <div class="chip-body">
+        <span class="chip-name">${name} <span id="cn-${k}"></span></span>
+        <button type="button" class="hex" id="ch-${k}" data-copy title="Copy the in-game cloth color"></button>
+        <span class="chip-api">Crest API <button type="button" class="hex small" id="ca-${k}" data-copy title="Copy the guild crest API color"></button></span>
+      </div>
+    </div>`).join('');
+}
+
+// ---------- state changes ----------
+function revealIn(box, el) {
+  if (!box || !el || box.closest('[hidden]')) return;
+  const br = box.getBoundingClientRect(), er = el.getBoundingClientRect();
+  if (er.top < br.top) box.scrollTop -= (br.top - er.top) + 8;
+  else if (er.bottom > br.bottom) box.scrollTop += (er.bottom - br.bottom) + 8;
+}
+function changed(prev) {
+  for (const k of FIELDS) {
+    if (prev[k] === state[k]) continue;
+    if (els[k]) {
+      if (prev[k] != null && els[k][prev[k]]) els[k][prev[k]].setAttribute('aria-pressed', 'false');
+      els[k][state[k]].setAttribute('aria-pressed', 'true');
+    }
+    const pal = COLORS[k];
+    $('val-' + k).innerHTML = (pal ? `<span class="dot" style="background:${pal[state[k]].cloth}"></span>` : '') + `${state[k] + 1} / ${COUNT[k]}`;
+    $('meta-' + k).textContent = `${state[k] + 1} of ${COUNT[k]}`;
+  }
+  if (prev.emblemColor !== state.emblemColor) paintEmblemTiles();
+  if (prev.borderColor !== state.borderColor) paintBorderTiles();
+  if (prev.bg !== state.bg) $('book').style.setProperty('--tile-bg', BG[state.bg].cloth);
+  if (prev.emblem !== state.emblem) revealIn($('grid-emblem'), els.emblem[state.emblem]);
+
+  for (const [k] of CHIP_KEYS) {
+    const c = COLORS[k][state[k]];
+    $('cs-' + k).style.background = c.cloth;
+    $('cn-' + k).textContent = `${state[k] + 1}/${COUNT[k]}`;
+    $('ch-' + k).textContent = c.cloth;
+    $('ca-' + k).textContent = c.api;
+  }
+  $('ids').innerHTML = `Guild crest API ids: emblem <b>${state.emblem}</b> · emblem color <b>${state.emblemColor}</b> · border <b>${state.border}</b> · border color <b>${state.borderColor}</b> · background <b>${state.bg}</b>`;
+
+  const code = toCode(state);
+  const input = $('code');
+  if (document.activeElement !== input) input.value = code;
+  try { if (location.hash !== '#t-' + code) history.replaceState(null, '', '#t-' + code); } catch (e) { /* frame may refuse */ }
+  scheduleRender();
+  Worn.setDesign(state);
+}
+function set(k, v) {
+  const n = COUNT[k]; v = ((v % n) + n) % n;
+  if (state[k] === v) return;
+  const prev = { ...state }; state[k] = v; changed(prev);
+}
+function setAll(s) {
+  const prev = { ...state }; Object.assign(state, s); changed(prev);
+}
+function setRing(r) {
+  state.ring = r;
+  document.querySelectorAll('[data-ring]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ring === r)));
+  scheduleRender();
+}
+
+// ---------- toast & copy ----------
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 1900);
+}
+function selectText(el) {
+  try {
+    if (el.select) { el.focus(); el.select(); return; }
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  } catch (e) { /* ignore */ }
+}
+function copyText(text, el) {
+  try {
+    navigator.clipboard.writeText(text).then(() => toast(`Copied ${text}`), () => { selectText(el); toast('Selected. Press Ctrl+C to copy.'); });
+  } catch (e) { selectText(el); toast('Selected. Press Ctrl+C to copy.'); }
+}
+
+// ---------- saved designs (this browser only) ----------
+const KEY = 'tabard-designer.saved.v1';
+let saved = [];
+try { const a = JSON.parse(localStorage.getItem(KEY) || '[]'); if (Array.isArray(a)) saved = a.filter(c => fromCode(c)); } catch (e) { saved = []; }
+function storeSaved() { try { localStorage.setItem(KEY, JSON.stringify(saved)); return true; } catch (e) { return false; } }
+const thumbs = new Map();
+function renderSaved() {
+  const g = $('saved-grid');
+  $('saved-empty').hidden = saved.length > 0;
+  g.innerHTML = '';
+  for (const code of saved) {
+    const s = fromCode(code);
+    let src = thumbs.get(code);
+    if (!src && ready) { src = drawDesign(s, 'none', 1).toDataURL('image/png'); thumbs.set(code, src); }
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML = `<button type="button" class="load" data-load="${code}" aria-label="Load design ${code}">${src ? `<img src="${src}" alt="" width="216" height="240">` : ''}<span>${code}</span></button>
+      <button type="button" class="del" data-del="${code}" aria-label="Delete design ${code}"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+    g.appendChild(item);
+  }
+}
+
+// ---------- events ----------
+function wire() {
+  $('vendor').addEventListener('click', e => {
+    const b = e.target.closest('[data-step]'); if (!b) return;
+    set(b.dataset.step, state[b.dataset.step] + +b.dataset.dir);
+  });
+  $('book').addEventListener('click', e => {
+    const b = e.target.closest('[data-k]');
+    if (b) { set(b.dataset.k, +b.dataset.i); return; }
+    const h = e.target.closest('[data-copy]');
+    if (h) copyText(h.textContent, h);
+  });
+  document.querySelectorAll('[data-ring]').forEach(b => b.addEventListener('click', () => setRing(b.dataset.ring)));
+
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const selectTab = t => {
+    tabs.forEach(x => {
+      const on = x === t;
+      x.setAttribute('aria-selected', String(on)); x.tabIndex = on ? 0 : -1;
+      $(x.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (t.id === 'tab-emblem') revealIn($('grid-emblem'), els.emblem[state.emblem]);
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      selectTab(n); n.focus(); e.preventDefault();
+    });
+  });
+
+  $('random').addEventListener('click', () => {
+    const r = n => Math.floor(Math.random() * n);
+    setAll({ emblem: r(196), emblemColor: r(17), border: r(6), borderColor: r(17), bg: r(51) });
+  });
+  $('save').addEventListener('click', () => {
+    const code = toCode(state);
+    const had = saved.includes(code);
+    saved = [code, ...saved.filter(c => c !== code)].slice(0, 48);
+    const ok = storeSaved();
+    renderSaved();
+    toast(!ok ? 'Saved for this visit only. This browser blocks storage here.' : had ? 'Already saved, moved to the front.' : `Saved ${code}`);
+  });
+  $('saved-grid').addEventListener('click', e => {
+    const l = e.target.closest('[data-load]');
+    if (l) { const s = fromCode(l.dataset.load); if (s) { setAll(s); toast(`Loaded ${l.dataset.load}`); } return; }
+    const d = e.target.closest('[data-del]');
+    if (d) { saved = saved.filter(c => c !== d.dataset.del); storeSaved(); renderSaved(); toast('Design deleted'); }
+  });
+
+  const input = $('code'), err = $('code-err');
+  const apply = () => {
+    const s = fromCode(input.value);
+    if (!s) {
+      err.textContent = 'That code does not match a tabard. Use five numbers like 129-17-4-17-33: emblem 1–196, emblem color 1–17, border 1–6, border color 1–17, background 1–51.';
+      err.hidden = false; return;
+    }
+    err.hidden = true; setAll(s); input.value = toCode(state);
+  };
+  $('load-code').addEventListener('click', apply);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+  input.addEventListener('blur', () => { if (err.hidden) input.value = toCode(state); });
+  $('copy-code').addEventListener('click', () => copyText(toCode(state), input));
+  window.addEventListener('hashchange', () => { const s = fromCode(location.hash); if (s) setAll(s); });
+}
+
+// ---------- worn in game (3D) ----------
+// in-game emblem crops: [x, y, w, h] in the half-size atlas, [x0, y0] in the rolled 512x384 torso sheet
+const EMB = [[0,870,140,95,116,154],[315,1230,200,73,58,172],[1092,1230,225,71,32,168],[893,663,102,101,154,172],[118,1230,115,74,142,160],[142,870,110,94,146,174],[1490,1230,98,69,158,178],[724,967,108,88,148,144],[1189,436,180,110,76,142],[1774,1230,168,67,90,168],[395,1307,169,64,88,168],[549,1059,146,84,112,152],[254,870,141,94,116,142],[406,1147,140,80,118,148],[364,663,164,102,92,146],[1229,870,147,92,106,168],[0,967,129,90,128,168],[517,1230,179,73,78,164],[158,313,135,120,122,144],[1473,967,150,87,108,164],[834,967,144,88,112,160],[824,552,194,106,62,126],[382,436,110,112,146,160],[670,185,110,124,146,136],[980,967,123,88,126,168],[397,870,161,94,96,142],[1707,1147,117,75,140,170],[164,1376,123,49,134,192],[1555,870,146,91,110,164],[0,1307,124,67,132,176],[1578,1307,178,59,78,178],[341,552,166,107,90,146],[1758,1307,164,56,92,180],[1846,768,143,96,114,156],[273,967,153,89,104,156],[548,1147,96,80,160,172],[494,436,120,112,136,150],[513,768,142,99,114,150],[782,185,130,123,126,138],[1371,436,68,110,188,154],[407,0,188,154,68,76],[867,768,132,98,124,154],[295,313,166,120,90,124],[0,0,207,183,48,8],[509,552,148,107,108,146],[1351,1059,156,83,100,136],[1319,1230,169,70,88,140],[142,1059,163,85,94,166],[413,1376,162,34,92,172],[1079,313,98,117,158,138],[0,1147,126,81,130,164],[1636,663,164,100,92,156],[428,967,104,89,152,164],[1703,870,90,91,166,156],[1441,436,183,110,72,120],[1939,552,88,103,168,136],[1020,552,132,106,124,128],[1696,313,110,114,146,156],[0,1376,162,55,102,184],[235,1230,78,74,178,180],[914,185,155,123,100,138],[1509,1059,140,83,116,144],[819,313,160,118,96,124],[697,1059,184,84,70,140],[646,1147,177,80,70,160],[1651,552,176,105,80,156],[1626,436,74,110,182,148],[698,1230,122,73,134,174],[1001,768,130,98,126,120],[1378,870,175,92,82,146],[180,185,183,125,72,100],[1808,313,142,114,114,144],[822,1230,164,72,92,180],[1215,185,144,122,112,124],[1625,967,151,86,106,164],[126,1307,151,66,106,178],[1908,436,72,109,184,138],[0,663,146,103,110,138],[1071,185,142,123,114,138],[1357,768,130,97,126,142],[981,313,96,118,160,140],[883,1059,65,84,190,160],[566,1307,174,64,82,154],[1826,1147,128,75,128,170],[1081,1307,167,62,90,160],[128,1147,88,81,168,168],[616,436,94,112,162,108],[788,0,192,146,64,66],[1105,967,118,88,138,142],[1166,0,176,137,80,86],[1771,1059,116,82,140,164],[1802,663,136,100,120,152],[0,552,143,109,114,130],[1952,313,80,114,176,138],[560,870,94,94,162,154],[365,185,155,125,100,134],[0,436,176,114,80,136],[1583,1147,122,76,136,172],[848,1376,124,14,140,256],[1778,967,178,86,76,84],[209,0,196,165,62,54],[279,1307,114,66,142,176],[1489,768,144,97,112,150],[1250,1307,160,62,96,188],[950,1059,156,84,100,160],[916,1307,163,63,92,130],[1154,552,151,106,106,146],[712,436,63,111,194,146],[0,185,178,126,78,132],[0,1230,116,75,140,160],[218,1147,186,81,70,166],[982,0,182,138,74,108],[597,0,189,149,68,86],[1043,870,184,93,72,132],[1361,185,148,122,108,140],[307,1059,71,85,184,166],[1657,185,152,121,104,142],[1225,967,124,88,132,148],[726,1376,120,32,136,256],[577,1376,147,34,110,256],[1889,1059,158,82,98,160],[289,1376,122,43,134,256],[1412,1307,164,62,92,164],[0,768,168,100,92,124],[301,436,79,113,178,140],[1133,768,106,98,150,148],[1531,0,171,133,88,86],[1702,436,108,110,148,164],[1811,185,178,121,78,132],[530,663,121,102,134,152],[148,663,128,103,128,154],[1108,1059,114,84,142,168],[1704,0,176,133,80,92],[1582,313,112,115,144,130],[1635,768,145,97,112,152],[561,313,146,119,110,146],[997,663,137,101,120,154],[1375,313,64,116,194,144],[1136,663,130,101,126,134],[657,768,130,99,126,146],[1590,1230,182,68,74,120],[522,185,146,125,110,134],[1204,1147,160,77,96,160],[825,1147,112,80,144,164],[0,1059,140,86,116,170],[0,313,156,121,100,120],[1351,967,120,88,136,152],[1882,0,86,131,170,108],[939,1147,97,80,158,168],[131,967,140,90,116,164],[1366,1147,91,77,166,176],[988,1230,102,72,154,178],[170,768,78,100,178,160],[1344,0,185,134,70,116],[1307,552,159,106,96,138],[777,436,146,111,110,150],[1795,870,149,91,108,148],[534,967,118,89,138,160],[742,1307,172,64,84,178],[1038,1147,164,79,92,168],[925,436,152,111,104,150],[1511,185,144,122,112,134],[1268,663,140,101,116,144],[250,768,124,100,132,142],[1410,663,146,101,110,144],[1441,313,139,116,118,138],[653,663,148,102,108,148],[656,870,166,94,88,156],[1459,1147,122,77,136,180],[380,1059,167,85,94,158],[1179,313,92,117,164,150],[145,552,102,109,154,148],[463,313,96,120,160,138],[1829,552,108,105,148,140],[1241,768,114,98,142,150],[803,663,88,102,168,148],[789,768,76,99,180,154],[1782,768,62,97,194,158],[1651,1059,118,83,138,170],[1224,1059,125,84,132,168],[824,870,70,94,186,154],[1079,436,108,111,148,142],[278,663,84,103,172,150],[1468,552,94,106,162,148],[896,870,76,94,180,156],[654,967,68,89,188,160],[974,870,67,94,190,160],[1558,663,76,101,180,154],[659,552,163,107,94,146],[1273,313,100,117,156,132],[178,436,121,114,140,136],[376,768,135,100,122,152],[1564,552,85,106,172,148],[1812,436,94,110,162,150],[709,313,108,119,150,136],[249,552,90,109,168,146]];
+const Worn = (() => {
+  const VIEW_KEY = 'tabard-designer.view.v1';
+  const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might' };
+  const BELTS = ['none', 'might', 'lawbringer', 'giantstalker', 'nightslayer', 'prophecy', 'earthfury', 'arcanist', 'felheart', 'cenarion'];
+  try { Object.assign(st, JSON.parse(localStorage.getItem(VIEW_KEY) || '{}')); } catch (e) { /* ignore */ }
+  if (!BELTS.includes(st.belt)) st.belt = 'might';
+  const remember = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } };
+  const beltCache = new Map();
+  let beltImage = null;
+  async function loadBelt() {
+    const k = st.belt;
+    if (k === 'none') { beltImage = null; return; }
+    if (!beltCache.has(k)) beltCache.set(k, loadImg(`models/belts/${k}.webp`));
+    try { const img = await beltCache.get(k); if (st.belt === k) beltImage = img; }
+    catch (e) { beltCache.delete(k); if (st.belt === k) beltImage = null; }
+  }
+
+  let boot = null, A = null, LUT = null, META = null;
+  let renderer, scene, camera, rig, mesh = null, current = null, bodyCanvas, bodyTex, tabCanvas, layers;
+  let angle = 0, goal = null, raf = 0, design = null, loadToken = 0;
+  const models = new Map();
+  const status = msg => { const s = $('worn-status'); s.textContent = msg || ''; s.hidden = !msg; };
+
+  const loadScript = src => new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.onload = res;
+    s.onerror = () => rej(new Error('script')); document.head.appendChild(s);
+  });
+  // binary data ships as base64 text, because artifacts only serve text and media types
+  const getBin = url => fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.text(); }).then(t => {
+    const s = atob(t.trim()), b = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    return b.buffer;
+  });
+
+  function start() {
+    if (boot) return boot;
+    boot = (async () => {
+      status('Loading the character…');
+      if (!window.THREE) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+      const cv = $('worn-canvas');
+      if (!renderer) {
+        try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); }
+        catch (e) { const err = new Error('webgl'); err.webgl = true; throw err; }
+      }
+      const [emb, bor, bgi, lut, meta] = await Promise.all([
+        loadImg('img3d/emblems-ingame.webp'), loadImg('img3d/borders-ingame.webp'), loadImg('img3d/bg-ingame.webp'),
+        getBin('img3d/luts.b64.txt'), fetch('models/models.json').then(r => { if (!r.ok) throw new Error('models'); return r.json(); })]);
+
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(28, 3 / 4, 0.05, 50);
+      scene.add(new THREE.HemisphereLight(0xfff4e2, 0x2b3040, 0.95));
+      const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(2, 4, 5); scene.add(key);
+      const rim = new THREE.DirectionalLight(0x9fb4ff, 0.35); rim.position.set(-3, 2, -4); scene.add(rim);
+      rig = new THREE.Group(); scene.add(rig);
+
+      tabCanvas = document.createElement('canvas'); tabCanvas.width = 512; tabCanvas.height = 384;
+      layers = [0, 1, 2].map(() => { const c = document.createElement('canvas'); c.width = 512; c.height = 384; return c; });
+      bodyCanvas = document.createElement('canvas'); bodyCanvas.width = 2048; bodyCanvas.height = 1024;
+      bodyTex = new THREE.CanvasTexture(bodyCanvas);
+      bodyTex.flipY = false; bodyTex.encoding = THREE.sRGBEncoding;
+      bodyTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+      wireInput(cv);
+      new ResizeObserver(resize).observe(cv);
+      // assets go live last, so nothing tries to paint before the scene exists
+      A = { emblems: emb, borders: bor, bg: bgi }; LUT = new Uint8Array(lut); META = meta;
+      resize();
+    })();
+    boot.catch(e => { if (!e || !e.webgl) boot = null; }); // a failed download may be retried; missing WebGL may not
+    return boot;
+  }
+
+  function resize() {
+    if (!renderer) return;
+    const cv = $('worn-canvas'), w = cv.clientWidth;
+    if (!w) return;
+    renderer.setSize(w, Math.round(w * 4 / 3), false);
+    camera.aspect = 3 / 4; camera.updateProjectionMatrix();
+    requestRender();
+  }
+
+  // --- tabard texture from the in-game torso sheets, recoloured with the game's colour tables ---
+  function lutLayer(i, draw, base) {
+    const c = layers[i], x = c.getContext('2d', { willReadFrequently: true });
+    x.clearRect(0, 0, 512, 384); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    draw(x);
+    const d = x.getImageData(0, 0, 512, 384), p = d.data;
+    for (let k = 0; k < p.length; k += 4) {
+      if (!p[k + 3]) continue;
+      const L = p[k];
+      p[k] = LUT[base + L]; p[k + 1] = LUT[base + 256 + L]; p[k + 2] = LUT[base + 512 + L];
+    }
+    x.putImageData(d, 0, 0);
+    return c;
+  }
+  function composeTabard(s) {
+    const t = tabCanvas.getContext('2d');
+    t.clearRect(0, 0, 512, 384);
+    t.drawImage(lutLayer(0, x => x.drawImage(A.bg, 0, 0), (34 + s.bg) * 768), 0, 0);
+    t.drawImage(lutLayer(1, x => x.drawImage(A.borders, (s.border % 3) * 512, Math.floor(s.border / 3) * 384, 512, 384, 0, 0, 512, 384), (17 + s.borderColor) * 768), 0, 0);
+    const [ex, ey, ew, eh, x0, y0] = EMB[s.emblem];
+    t.drawImage(lutLayer(2, x => {
+      x.drawImage(A.emblems, ex, ey, ew, eh, x0 - 256, y0, ew * 2, eh * 2);
+      x.drawImage(A.emblems, ex, ey, ew, eh, x0 + 256, y0, ew * 2, eh * 2);
+    }, s.emblemColor * 768), 0, 0);
+  }
+  function paintBody() {
+    if (!current) return;
+    const b = bodyCanvas.getContext('2d');
+    b.drawImage(current.skin, 0, 0, 2048, 1024);
+    b.drawImage(tabCanvas, 512, 0);                    // tabard: TorsoUpper + TorsoLower
+    if (beltImage) b.drawImage(beltImage, 512, 384, 512, 256); // belt: LegUpper, over the waist
+    bodyTex.needsUpdate = true;
+    requestRender();
+  }
+
+  // --- models ---
+  function texFrom(img) {
+    const t = new THREE.Texture(img);
+    t.flipY = false; t.encoding = THREE.sRGBEncoding; t.needsUpdate = true;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  }
+  async function loadModel(key) {
+    if (models.has(key)) return models.get(key);
+    const m = META[key];
+    if (!m) throw new Error(key);
+    const [buf, skin, hair, extra] = await Promise.all([
+      getBin(`models/${key}.b64.txt`), loadImg(`models/${key}-skin.jpg`),
+      m.hairTex ? loadImg(`models/${key}-hair.webp`) : null,
+      m.extraTex ? loadImg(`models/${key}-extra.webp`) : null]);
+    const v = m.v; let o = 0;
+    const pos = new Float32Array(buf, o, v * 3); o += v * 12;
+    const uv = new Float32Array(buf, o, v * 2); o += v * 8;
+    const nrm = new Int8Array(buf, o, v * 3); o += v * 3 + ((4 - (v * 3) % 4) % 4);
+    const idx = new Uint16Array(buf, o, m.body + m.hair + m.extra);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3, true));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.addGroup(0, m.body, 0);
+    if (m.hair) g.addGroup(m.body, m.hair, 1);
+    if (m.extra) g.addGroup(m.body + m.hair, m.extra, 2);
+    const side = THREE.DoubleSide;
+    const mats = [
+      new THREE.MeshLambertMaterial({ map: bodyTex, side }),
+      new THREE.MeshLambertMaterial({ map: hair ? texFrom(hair) : null, color: hair ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
+      new THREE.MeshLambertMaterial({ map: extra ? texFrom(extra) : null, color: extra ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 })];
+    const out = { key, mesh: new THREE.Mesh(g, mats), skin, height: m.height };
+    models.set(key, out);
+    return out;
+  }
+  async function showModel() {
+    const key = `${st.race}_${st.sex}`, token = ++loadToken;
+    if (!current || current.key !== key) status('Loading the character…');
+    try {
+      const md = await loadModel(key);
+      if (token !== loadToken) return;
+      if (mesh) rig.remove(mesh);
+      mesh = md.mesh; current = md; rig.add(mesh);
+      frame(); paintBody(); status('');
+    } catch (e) {
+      if (token === loadToken) status('This character did not load. Pick another race or reload the page.');
+    }
+  }
+  function frame() {
+    if (!current) return;
+    const h = current.height, t = Math.tan(14 * Math.PI / 180);
+    const ty = st.close ? h * 0.66 : h * 0.5, dist = st.close ? (h * 0.34) / t : (h * 0.56) / t;
+    camera.position.set(0, ty + h * 0.02, dist);
+    camera.lookAt(0, ty, 0);
+    requestRender();
+  }
+
+  // --- interaction ---
+  function requestRender() {
+    if (raf || !renderer || st.view !== 'worn') return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (goal !== null) {
+        const d = goal - angle;
+        if (Math.abs(d) < 0.002) { angle = goal; goal = null; } else { angle += d * 0.18; requestRender(); }
+      }
+      rig.rotation.y = angle;
+      renderer.render(scene, camera);
+    });
+  }
+  function turnTo(target) {
+    const two = Math.PI * 2;
+    const base = Math.round((angle - target) / two) * two;
+    goal = base + target;
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { angle = goal; goal = null; }
+    requestRender();
+  }
+  function wireInput(cv) {
+    let drag = null;
+    cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, a: angle }; goal = null; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', e => { if (!drag) return; angle = drag.a + (e.clientX - drag.x) * 0.012; requestRender(); });
+    const end = () => { drag = null; };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    cv.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        goal = null; angle += (e.key === 'ArrowLeft' ? -1 : 1) * 0.2; requestRender(); e.preventDefault();
+      }
+    });
+  }
+
+  // --- public ---
+  function syncControls() {
+    const worn = st.view === 'worn';
+    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === st.view)));
+    document.querySelectorAll('[data-sex]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sex === st.sex)));
+    $('cam-close').setAttribute('aria-pressed', String(st.close));
+    $('race').value = st.race;
+    $('belt').value = st.belt;
+    $('spot-crest').hidden = worn; $('ring-row').hidden = worn;
+    $('spot-worn').hidden = !worn; $('worn-controls').hidden = !worn;
+  }
+  async function setView(v) {
+    st.view = v; remember(); syncControls();
+    if (v !== 'worn') return;
+    try {
+      await start();
+      resize();
+      if (design) { composeTabard(design); }
+      await loadBelt();
+      await showModel();
+    } catch (e) {
+      status(e && e.webgl
+        ? 'This browser could not start 3D graphics (WebGL), so the worn view is not available here. Turning on hardware acceleration in the browser settings usually fixes this.'
+        : 'The 3D view did not load. Check your connection, then press Worn in game again.');
+    }
+  }
+  function setDesign(s) {
+    design = { ...s };
+    if (A && st.view === 'worn') { composeTabard(design); paintBody(); }
+  }
+  function wireControls() {
+    document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+    document.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; remember(); syncControls(); if (A) showModel(); }));
+    $('race').addEventListener('change', e => { st.race = e.target.value; remember(); if (A) showModel(); });
+    $('belt').addEventListener('change', async e => { st.belt = e.target.value; remember(); await loadBelt(); paintBody(); });
+    $('cam-front').addEventListener('click', () => turnTo(0));
+    $('cam-back').addEventListener('click', () => turnTo(Math.PI));
+    $('cam-close').addEventListener('click', () => { st.close = !st.close; remember(); syncControls(); frame(); });
+    syncControls();
+    if (st.view === 'worn') setView('worn');
+  }
+  return { setDesign, wireControls };
+})();
+
+// ---------- start ----------
+buildVendor();
+FIELDS.filter(k => COLORS[k]).forEach(buildSwatches);
+buildTiles();
+buildChips();
+wire();
+Worn.wireControls();
+const fromHash = fromCode(location.hash);
+if (fromHash) Object.assign(state, fromHash);
+changed({});
+renderSaved();
+
+Promise.all(Object.entries(SRC).map(([k, s]) => loadImg(s).then(i => { IM[k] = i; })))
+  .then(() => {
+    ready = true;
+    paintEmblemTiles(); paintBorderTiles(); scheduleRender(); renderSaved();
+    revealIn($('grid-emblem'), els.emblem[state.emblem]);
+  })
+  .catch(() => { $('loading').textContent = 'The tabard artwork did not load. Reload the page to try again.'; });
+})();
+</script>
+</body>
+</html>
