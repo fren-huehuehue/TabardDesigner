@@ -94,7 +94,7 @@ button{font:inherit;color:inherit}
 
 /* pattern book */
 .book{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-width:0;--tile-bg:var(--cloth)}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding-inline:10px;overflow-x:auto}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);padding-inline:10px}
 .tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:13px 12px 10px;color:var(--muted);font:400 1.08rem var(--f-display);letter-spacing:.03em;cursor:pointer;white-space:nowrap}
 .tab:hover{color:var(--ink)}
 .tab[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold)}
@@ -113,6 +113,9 @@ button{font:inherit;color:inherit}
 .emblems{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;max-height:min(58vh,540px);overflow-y:auto;padding:6px;margin:-6px;overscroll-behavior:contain}
 .tile{appearance:none;border:0;padding:3px;border-radius:5px;background:var(--tile-bg);cursor:pointer;aspect-ratio:1;max-width:100%;box-shadow:inset 0 0 0 1px var(--edge)}
 .tile canvas{display:block;width:100%;height:100%}
+/* the tiles hold the grey artwork; the colour is an SVG colour matrix, so a new colour repaints nothing */
+.emblems .tile canvas{filter:url(#tint-emblem)}
+.borders .tile canvas{filter:url(#tint-border)}
 .tile:hover{filter:brightness(1.15)}
 .tile[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--gold)}
 .borders{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;max-width:560px}
@@ -169,16 +172,23 @@ footer p{margin:0;max-width:78ch}
   .vrow .name{font-size:.95rem}
   .sw17,.bg51{gap:3px}
   .tabpanel,.colors{padding:12px}
+  .tabs{padding-inline:6px;gap:0}
+  .tab{padding-inline:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.sw:hover{transform:none}}
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="tint-emblem" color-interpolation-filters="sRGB"><feColorMatrix id="tint-emblem-m" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
+  <filter id="tint-border" color-interpolation-filters="sRGB"><feColorMatrix id="tint-border-m" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
+</svg>
+
 <div class="page">
   <header class="masthead">
     <h1>Guild Tabard Designer</h1>
-    <p class="lede">The same choices as the guild tabard vendor in World of Warcraft, nothing added and nothing left out: <b>196</b> emblems in <b>17</b> colors, <b>6</b> borders in <b>17</b> colors and <b>51</b> background colors. Switch to <b>Worn in game</b> to see it on any of <b>10</b> races.</p>
+    <p class="lede">The same choices as the guild tabard vendor in World of Warcraft, nothing added and nothing left out: <b>196</b> emblems in <b>17</b> colors, <b>6</b> borders in <b>17</b> colors and <b>51</b> background colors. Switch to <b>Worn in game</b> to see it on any of <b>9</b> races.</p>
   </header>
 
   <main class="bench">
@@ -191,7 +201,7 @@ footer p{margin:0;max-width:78ch}
       </div>
 
       <div class="spot" id="spot-crest">
-        <img id="preview" alt="Preview of your guild tabard" width="216" height="240" hidden>
+        <canvas id="preview" role="img" aria-label="Preview of your guild tabard" width="648" height="720" hidden></canvas>
         <p class="loading" id="loading">Loading the vendor's patterns…</p>
       </div>
 
@@ -292,10 +302,10 @@ footer p{margin:0;max-width:78ch}
       </div>
 
       <div class="tabpanel" id="panel-border" role="tabpanel" aria-labelledby="tab-border" hidden>
-        <div class="sec-h"><h2>Border</h2><span class="meta" id="meta-border"></span></div>
-        <div class="borders" id="grid-border"></div>
-        <div class="sec-h sec-gap"><h2>Border color</h2><span class="meta" id="meta-borderColor"></span></div>
+        <div class="sec-h"><h2>Border color</h2><span class="meta" id="meta-borderColor"></span></div>
         <div class="sw17" id="sw-borderColor"></div>
+        <div class="sec-h sec-gap"><h2>Border</h2><span class="meta" id="meta-border"></span></div>
+        <div class="borders" id="grid-border"></div>
       </div>
 
       <div class="tabpanel" id="panel-bg" role="tabpanel" aria-labelledby="tab-bg" hidden>
@@ -375,16 +385,39 @@ const SRC = { emblems: 'img/emblems.png', borders: 'img/borders.png', bg: 'img/b
 const IM = {};
 const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(src)); i.src = src; });
 
-function tinted(img, sx, sy, sw, sh, dw, dh, f) {
+// The artwork is grey: a colour multiplies each channel by its factor (capped at 255) and keeps alpha.
+// The scaled grey pixels are read once and kept, so a new colour costs one pass through a lookup table.
+const greyCache = new Map();
+function greyPixels(img, sx, sy, sw, sh, dw, dh) {
+  const key = `${img.src}|${sx},${sy},${sw},${sh}|${dw}x${dh}`;
+  let d = greyCache.get(key);
+  if (d) { greyCache.delete(key); greyCache.set(key, d); return d; }
   const c = document.createElement('canvas'); c.width = dw; c.height = dh;
   const x = c.getContext('2d', { willReadFrequently: true });
   x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
   x.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
-  const d = x.getImageData(0, 0, dw, dh), p = d.data, r = f[0], g = f[1], b = f[2];
-  for (let i = 0; i < p.length; i += 4) {
-    if (p[i + 3]) { p[i] = p[i] * r; p[i + 1] = p[i + 1] * g; p[i + 2] = p[i + 2] * b; }
+  d = new Uint32Array(x.getImageData(0, 0, dw, dh).data.buffer);
+  greyCache.set(key, d);
+  if (greyCache.size > 24) greyCache.delete(greyCache.keys().next().value);
+  return d;
+}
+function tintedData(img, sx, sy, sw, sh, dw, dh, f) {
+  const src = greyPixels(img, sx, sy, sw, sh, dw, dh), out = new ImageData(dw, dh), o = new Uint32Array(out.data.buffer);
+  const r = new Uint32Array(256), g = new Uint32Array(256), b = new Uint32Array(256);
+  for (let v = 0; v < 256; v++) {
+    r[v] = Math.min(255, Math.round(v * f[0]));
+    g[v] = Math.min(255, Math.round(v * f[1])) << 8;
+    b[v] = Math.min(255, Math.round(v * f[2])) << 16;
   }
-  x.putImageData(d, 0, 0);
+  for (let i = 0; i < src.length; i++) { // RGBA bytes read as little-endian words: 0xAABBGGRR
+    const v = src[i];
+    if (v >>> 24) o[i] = (v & 0xff000000) | b[(v >>> 16) & 255] | g[(v >>> 8) & 255] | r[v & 255];
+  }
+  return out;
+}
+function tinted(img, sx, sy, sw, sh, dw, dh, f) {
+  const c = document.createElement('canvas'); c.width = dw; c.height = dh;
+  c.getContext('2d').putImageData(tintedData(img, sx, sy, sw, sh, dw, dh, f), 0, 0);
   return c;
 }
 const cache = new Map();
@@ -395,8 +428,8 @@ function cached(key, make) {
   return v;
 }
 const W = 216, H = 240;
-function drawDesign(s, ring, S) {
-  const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
+function drawDesign(s, ring, S, c = document.createElement('canvas')) {
+  c.width = W * S; c.height = H * S;
   const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
   const put = (src, dx, dy, dw, dh) => x.drawImage(src, dx * S, dy * S, dw * S, dh * S);
   if (ring !== 'none') put(IM[ring], 0, 0, 216, 216);
@@ -415,9 +448,9 @@ function scheduleRender() {
   renderQueued = true;
   requestAnimationFrame(() => {
     renderQueued = false;
-    const img = $('preview');
-    img.src = drawDesign(state, state.ring, 3).toDataURL('image/png');
-    img.hidden = false; $('loading').hidden = true;
+    const cv = $('preview');
+    drawDesign(state, state.ring, 3, cv);
+    cv.hidden = false; $('loading').hidden = true;
   });
 }
 
@@ -468,22 +501,25 @@ function buildTiles() {
     els.border.push(b); borderCanvases.push(cv);
   }
 }
+// emblem tiles are drawn at the size they are shown
+function emblemCell() {
+  const w = emblemCanvases[0].clientWidth || 56, dpr = window.devicePixelRatio || 1;
+  return Math.min(112, Math.max(48, Math.ceil(w * dpr / 8) * 8));
+}
+// The tiles are painted once, in grey; the CSS filter multiplies each channel by the colour's factors (capped at 1),
+// which is the same tint the preview uses.
 function paintEmblemTiles() {
-  if (!ready) return;
-  const cell = 112, atlas = tinted(IM.emblems, 0, 0, 1750, 1750, 14 * cell, 14 * cell, EC[state.emblemColor].f);
+  const cell = emblemCell();
   emblemCanvases.forEach((cv, i) => {
-    const x = cv.getContext('2d'); x.clearRect(0, 0, cell, cell);
-    x.drawImage(atlas, (i % 14) * cell, Math.floor(i / 14) * cell, cell, cell, 0, 0, cell, cell);
+    cv.width = cell; cv.height = cell;
+    const x = cv.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(IM.emblems, (i % 14) * 125, Math.floor(i / 14) * 125, 125, 125, 0, 0, cell, cell);
   });
 }
 function paintBorderTiles() {
-  if (!ready) return;
-  const strip = tinted(IM.borders, 0, 0, 882, 159, 882, 159, BC[state.borderColor].f);
-  borderCanvases.forEach((cv, i) => {
-    const x = cv.getContext('2d'); x.clearRect(0, 0, 147, 159);
-    x.drawImage(strip, i * 147, 0, 147, 159, 0, 0, 147, 159);
-  });
+  borderCanvases.forEach((cv, i) => cv.getContext('2d').drawImage(IM.borders, i * 147, 0, 147, 159, 0, 0, 147, 159));
 }
+const tint = (id, f) => $(id).setAttribute('values', `${f[0]} 0 0 0 0 0 ${f[1]} 0 0 0 0 0 ${f[2]} 0 0 0 0 0 1 0`);
 const CHIP_KEYS = [['bg', 'Background'], ['borderColor', 'Border'], ['emblemColor', 'Emblem']];
 function buildChips() {
   $('chips').innerHTML = CHIP_KEYS.map(([k, name]) => `
@@ -515,8 +551,8 @@ function changed(prev) {
     $('val-' + k).innerHTML = (pal ? `<span class="dot" style="background:${pal[state[k]].cloth}"></span>` : '') + `${state[k] + 1} / ${COUNT[k]}`;
     $('meta-' + k).textContent = `${state[k] + 1} of ${COUNT[k]}`;
   }
-  if (prev.emblemColor !== state.emblemColor) paintEmblemTiles();
-  if (prev.borderColor !== state.borderColor) paintBorderTiles();
+  if (prev.emblemColor !== state.emblemColor) tint('tint-emblem-m', EC[state.emblemColor].f);
+  if (prev.borderColor !== state.borderColor) tint('tint-border-m', BC[state.borderColor].f);
   if (prev.bg !== state.bg) $('book').style.setProperty('--tile-bg', BG[state.bg].cloth);
   if (prev.emblem !== state.emblem) revealIn($('grid-emblem'), els.emblem[state.emblem]);
 
@@ -747,26 +783,28 @@ const Worn = (() => {
   }
 
   // --- tabard texture from the in-game torso sheets, recoloured with the game's colour tables ---
-  function lutLayer(i, draw, base) {
-    const c = layers[i], x = c.getContext('2d', { willReadFrequently: true });
+  const layerKey = [null, null, null];
+  function lutLayer(i, key, draw, base) {
+    const c = layers[i];
+    if (layerKey[i] === key) return c; // unchanged since the last design: keep it
+    layerKey[i] = key;
+    const x = c.getContext('2d', { willReadFrequently: true });
     x.clearRect(0, 0, 512, 384); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
     draw(x);
-    const d = x.getImageData(0, 0, 512, 384), p = d.data;
-    for (let k = 0; k < p.length; k += 4) {
-      if (!p[k + 3]) continue;
-      const L = p[k];
-      p[k] = LUT[base + L]; p[k + 1] = LUT[base + 256 + L]; p[k + 2] = LUT[base + 512 + L];
-    }
+    const t = new Uint32Array(256);
+    for (let L = 0; L < 256; L++) t[L] = LUT[base + L] | (LUT[base + 256 + L] << 8) | (LUT[base + 512 + L] << 16);
+    const d = x.getImageData(0, 0, 512, 384), p = new Uint32Array(d.data.buffer);
+    for (let k = 0; k < p.length; k++) { const v = p[k]; if (v >>> 24) p[k] = (v & 0xff000000) | t[v & 255]; }
     x.putImageData(d, 0, 0);
     return c;
   }
   function composeTabard(s) {
     const t = tabCanvas.getContext('2d');
     t.clearRect(0, 0, 512, 384);
-    t.drawImage(lutLayer(0, x => x.drawImage(A.bg, 0, 0), (34 + s.bg) * 768), 0, 0);
-    t.drawImage(lutLayer(1, x => x.drawImage(A.borders, (s.border % 3) * 512, Math.floor(s.border / 3) * 384, 512, 384, 0, 0, 512, 384), (17 + s.borderColor) * 768), 0, 0);
+    t.drawImage(lutLayer(0, `${s.bg}`, x => x.drawImage(A.bg, 0, 0), (34 + s.bg) * 768), 0, 0);
+    t.drawImage(lutLayer(1, `${s.border}.${s.borderColor}`, x => x.drawImage(A.borders, (s.border % 3) * 512, Math.floor(s.border / 3) * 384, 512, 384, 0, 0, 512, 384), (17 + s.borderColor) * 768), 0, 0);
     const [ex, ey, ew, eh, x0, y0] = EMB[s.emblem];
-    t.drawImage(lutLayer(2, x => {
+    t.drawImage(lutLayer(2, `${s.emblem}.${s.emblemColor}`, x => {
       x.drawImage(A.emblems, ex, ey, ew, eh, x0 - 256, y0, ew * 2, eh * 2);
       x.drawImage(A.emblems, ex, ey, ew, eh, x0 + 256, y0, ew * 2, eh * 2);
     }, s.emblemColor * 768), 0, 0);
@@ -793,15 +831,17 @@ const Worn = (() => {
     if (models.has(key)) return models.get(key);
     const m = META[key];
     if (!m) throw new Error(key);
-    const [buf, skin, hair, extra] = await Promise.all([
+    const [buf, skin, hair, extra, eyes] = await Promise.all([
       getBin(`models/${key}.b64.txt`), loadImg(`models/${key}-skin.jpg`),
       m.hairTex ? loadImg(`models/${key}-hair.webp`) : null,
-      m.extraTex ? loadImg(`models/${key}-extra.webp`) : null]);
+      m.extraTex ? loadImg(`models/${key}-extra.webp`) : null,
+      m.eyesTex ? loadImg(`models/${key}-eyes.webp`) : null]);
+    const ne = m.eyes || 0;
     const v = m.v; let o = 0;
     const pos = new Float32Array(buf, o, v * 3); o += v * 12;
     const uv = new Float32Array(buf, o, v * 2); o += v * 8;
     const nrm = new Int8Array(buf, o, v * 3); o += v * 3 + ((4 - (v * 3) % 4) % 4);
-    const idx = new Uint16Array(buf, o, m.body + m.hair + m.extra);
+    const idx = new Uint16Array(buf, o, m.body + m.hair + m.extra + ne);
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3, true));
@@ -810,11 +850,13 @@ const Worn = (() => {
     g.addGroup(0, m.body, 0);
     if (m.hair) g.addGroup(m.body, m.hair, 1);
     if (m.extra) g.addGroup(m.body + m.hair, m.extra, 2);
+    if (ne) g.addGroup(m.body + m.hair + m.extra, ne, 3);
     const side = THREE.DoubleSide;
     const mats = [
       new THREE.MeshLambertMaterial({ map: bodyTex, side }),
       new THREE.MeshLambertMaterial({ map: hair ? texFrom(hair) : null, color: hair ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
-      new THREE.MeshLambertMaterial({ map: extra ? texFrom(extra) : null, color: extra ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 })];
+      new THREE.MeshLambertMaterial({ map: extra ? texFrom(extra) : null, color: extra ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
+      new THREE.MeshLambertMaterial({ map: eyes ? texFrom(eyes) : null, color: eyes ? 0xffffff : 0x202020 })];
     const out = { key, mesh: new THREE.Mesh(g, mats), skin, height: m.height };
     models.set(key, out);
     return out;
@@ -900,9 +942,12 @@ const Worn = (() => {
         : 'The 3D view did not load. Check your connection, then press Worn in game again.');
     }
   }
+  let designQueued = false;
   function setDesign(s) {
     design = { ...s };
-    if (A && st.view === 'worn') { composeTabard(design); paintBody(); }
+    if (!A || st.view !== 'worn' || designQueued) return;
+    designQueued = true; // several changes in one frame (arrow keys held down) repaint once
+    requestAnimationFrame(() => { designQueued = false; if (A && st.view === 'worn') { composeTabard(design); paintBody(); } });
   }
   function wireControls() {
     document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
@@ -933,7 +978,7 @@ renderSaved();
 Promise.all(Object.entries(SRC).map(([k, s]) => loadImg(s).then(i => { IM[k] = i; })))
   .then(() => {
     ready = true;
-    paintEmblemTiles(); paintBorderTiles(); scheduleRender(); renderSaved();
+    scheduleRender(); paintEmblemTiles(); paintBorderTiles(); renderSaved();
     revealIn($('grid-emblem'), els.emblem[state.emblem]);
   })
   .catch(() => { $('loading').textContent = 'The tabard artwork did not load. Reload the page to try again.'; });

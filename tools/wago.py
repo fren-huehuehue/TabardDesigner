@@ -32,9 +32,10 @@ def file(fid, build=None):
     return download(url, os.path.join(CACHE, 'files', name))
 
 
-def table(name):
-    """A DB2 table of the current retail build as a list of dicts."""
-    out = download(f'https://wago.tools/db2/{name}/csv', os.path.join(CACHE, 'db2', f'{name}.csv'))
+def table(name, build=None):
+    """A DB2 table as a list of dicts: the current retail build, or the given build."""
+    url = f'https://wago.tools/db2/{name}/csv' + (f'?build={build}' if build else '')
+    out = download(url, os.path.join(CACHE, 'db2', f'{name}.csv' if not build else f'{name}@{build}.csv'))
     with open(out, encoding='utf-8') as f:
         return list(csv.DictReader(f))
 

@@ -1,148 +1,183 @@
 {
  "human_male": {
   "v": 4229,
-  "body": 19818,
+  "body": 19242,
   "hair": 876,
   "extra": 0,
+  "eyes": 576,
   "height": 2.025,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "human_female": {
   "v": 4350,
-  "body": 18522,
+  "body": 17754,
   "hair": 948,
   "extra": 0,
+  "eyes": 768,
   "height": 1.887,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "orc_male": {
   "v": 4174,
-  "body": 19038,
+  "body": 18462,
   "hair": 588,
   "extra": 0,
+  "eyes": 576,
   "height": 2.1,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "orc_female": {
   "v": 4215,
-  "body": 19308,
+  "body": 18732,
   "hair": 582,
   "extra": 0,
+  "eyes": 576,
   "height": 2.013,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "dwarf_male": {
   "v": 3915,
-  "body": 18468,
+  "body": 17892,
   "hair": 480,
   "extra": 0,
+  "eyes": 576,
   "height": 1.528,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "dwarf_female": {
   "v": 4258,
-  "body": 18258,
+  "body": 17682,
   "hair": 558,
   "extra": 0,
+  "eyes": 576,
   "height": 1.491,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "nightelf_male": {
   "v": 3946,
-  "body": 18237,
+  "body": 17661,
   "hair": 660,
   "extra": 0,
+  "eyes": 576,
   "height": 2.397,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "nightelf_female": {
   "v": 3817,
-  "body": 17880,
+  "body": 17304,
   "hair": 738,
   "extra": 0,
+  "eyes": 576,
   "height": 2.242,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "scourge_male": {
-  "v": 4713,
-  "body": 19776,
-  "hair": 432,
+  "v": 5384,
+  "body": 22950,
+  "hair": 0,
   "extra": 0,
-  "height": 1.757,
-  "hairTex": true
+  "eyes": 576,
+  "height": 1.755,
+  "eyesTex": true
  },
  "scourge_female": {
-  "v": 4619,
-  "body": 18834,
-  "hair": 432,
+  "v": 5901,
+  "body": 20910,
+  "hair": 2505,
   "extra": 0,
-  "height": 1.8,
-  "hairTex": true
+  "eyes": 576,
+  "height": 1.867,
+  "hairTex": true,
+  "eyesTex": true
  },
  "tauren_male": {
   "v": 5759,
-  "body": 20490,
+  "body": 19914,
   "hair": 1080,
   "extra": 3696,
+  "eyes": 576,
   "height": 3.033,
   "hairTex": true,
-  "extraTex": true
+  "extraTex": true,
+  "eyesTex": true
  },
  "tauren_female": {
   "v": 5859,
-  "body": 20400,
+  "body": 19824,
   "hair": 792,
   "extra": 3024,
+  "eyes": 576,
   "height": 2.763,
   "hairTex": true,
-  "extraTex": true
+  "extraTex": true,
+  "eyesTex": true
  },
  "gnome_male": {
   "v": 3481,
-  "body": 15744,
+  "body": 15168,
   "hair": 426,
   "extra": 0,
+  "eyes": 576,
   "height": 1.137,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "gnome_female": {
   "v": 3443,
-  "body": 15306,
+  "body": 14730,
   "hair": 480,
   "extra": 0,
+  "eyes": 576,
   "height": 1.091,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "troll_male": {
   "v": 3884,
-  "body": 17874,
+  "body": 17298,
   "hair": 528,
   "extra": 0,
+  "eyes": 576,
   "height": 2.326,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "troll_female": {
   "v": 3943,
-  "body": 18510,
+  "body": 17934,
   "hair": 528,
   "extra": 0,
+  "eyes": 576,
   "height": 2.37,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "skyborne_male": {
   "v": 5186,
-  "body": 20400,
+  "body": 19824,
   "hair": 3843,
   "extra": 0,
+  "eyes": 576,
   "height": 2.16,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  },
  "skyborne_female": {
   "v": 4730,
-  "body": 20163,
+  "body": 19587,
   "hair": 2367,
   "extra": 0,
+  "eyes": 576,
   "height": 1.967,
-  "hairTex": true
+  "hairTex": true,
+  "eyesTex": true
  }
 }

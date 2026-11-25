@@ -40,7 +40,8 @@ python export.py export   # docs/models: posed meshes, skins, hair
 python build_belts.py     # docs/models/belts: Tier 1 belt textures
 ```
 
-`tools/overrides.json` holds the fixes the data cannot tell: extra geosets (Undead bones, Tauren horns, Skyborne
+Eye textures come from the first Eye Color choice (Eye Glow for the Undead) in the ChrCustomization tables.
+`tools/overrides.json` holds the fixes the data cannot tell: extra geosets (Undead bones and jaw, Tauren horns, Skyborne
 eyebrows), a brown Tauren fur, and the Skyborne file IDs. Those files have no listfile name; they come from ChrModel
 218/219 and the first Skin Color, Face, Hair Style and Hair Color choice in the ChrCustomization tables of WoW Forever
 (build 1.60.1.71091).

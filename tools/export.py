@@ -107,7 +107,7 @@ def geometry(m, s, info, sel, hairtex_ok):
             t0 = tt[0] if tt else 1
             if t0 in (0, 2, -1):
                 continue  # hardcoded textures (eye glow etc.) and capes
-            kind = 'hair' if t0 == 6 else 'extra' if t0 == 8 else 'body'
+            kind = 'hair' if t0 == 6 else 'extra' if t0 == 8 else 'eyes' if t0 == 19 else 'body'
             parts.append((P, N, UV, I, kind, g))
     return parts
 
@@ -129,7 +129,8 @@ def check_sheet(keys, path):
         bt = np.array(body_texture(key, demo))
         ht = hair_texture(key); ht = np.array(ht) if ht is not None else (70, 50, 40)
         et = hair_texture(key, 'extra'); et = np.array(et) if et is not None else ht
-        parts = [(P, N, UV, I, {'body': bt, 'hair': ht, 'extra': et}[k]) for P, N, UV, I, k, g in geometry(m, s, info, sel, True)]
+        yt = hair_texture(key, 'eyes'); yt = np.array(yt) if yt is not None else (20, 20, 20)
+        parts = [(P, N, UV, I, {'body': bt, 'hair': ht, 'extra': et, 'eyes': yt}[k]) for P, N, UV, I, k, g in geometry(m, s, info, sel, True)]
         img = render(parts, size=(300, 380), view='front')
         im = Image.fromarray(img)
         from PIL import ImageDraw
@@ -149,7 +150,7 @@ def export(key):
     m, s = load(key); info = subinfo(m, s); sel = choose(key, info)
     parts = geometry(m, s, info, sel, True)
     # WoW (x fwd, y left, z up) -> three (X=y, Y=z, Z=x)
-    pos = []; nrm = []; uv = []; tri = {'body': [], 'hair': [], 'extra': []}; base = 0
+    pos = []; nrm = []; uv = []; tri = {'body': [], 'hair': [], 'extra': [], 'eyes': []}; base = 0
     for P, N, UV, I, k, g in parts:
         pos.append(P[:, [1, 2, 0]]); nrm.append(N[:, [1, 2, 0]]); uv.append(UV)
         tri[k].append(I + base); base += len(P)
@@ -163,14 +164,14 @@ def export(key):
     n8 += b'\0' * ((-len(n8)) % 4)
     idx = {k: (np.concatenate(v).astype(np.uint16).ravel() if v else np.zeros(0, np.uint16)) for k, v in tri.items()}
     os.makedirs(OUT, exist_ok=True)
-    # layout: pos f32 (12v) | uv f32 (8v) | normals i8 (3v, padded to 4) | body u16 | hair u16 | extra u16
-    blob = pos.tobytes() + uv.tobytes() + n8 + idx['body'].tobytes() + idx['hair'].tobytes() + idx['extra'].tobytes()
+    # layout: pos f32 (12v) | uv f32 (8v) | normals i8 (3v, padded to 4) | body u16 | hair u16 | extra u16 | eyes u16
+    blob = pos.tobytes() + uv.tobytes() + n8 + b''.join(idx[k].tobytes() for k in ('body', 'hair', 'extra', 'eyes'))
     # artifacts only serve text and media types, so the page reads base64 text (GitHub Pages compresses it)
     open(os.path.join(OUT, f'{key}.b64.txt'), 'w').write(base64.b64encode(blob).decode())
     meta = dict(v=int(len(pos)), body=int(len(idx['body'])), hair=int(len(idx['hair'])), extra=int(len(idx['extra'])),
-                height=round(float(pos[:, 1].max()), 3))
+                eyes=int(len(idx['eyes'])), height=round(float(pos[:, 1].max()), 3))
     body_texture(key).convert('RGB').save(os.path.join(OUT, f'{key}-skin.jpg'), quality=85)
-    for kind in ('hair', 'extra'):
+    for kind in ('hair', 'extra', 'eyes'):
         t = hair_texture(key, kind)
         if t is not None and meta[kind]:
             if max(t.size) > 512:
