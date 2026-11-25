@@ -165,6 +165,7 @@ footer p{margin:0;max-width:78ch}
 .worn-controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
 .worn-controls select{appearance:auto;background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:5px 8px;font:500 .92rem var(--f-body);max-width:100%}
 .worn-controls select:focus{border-color:var(--gold-dim)}
+.worn-controls input[type="range"]{accent-color:var(--gold);width:128px;max-width:100%;margin:0}
 .ctl{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-width:0}
 
 @media (max-width:440px){
@@ -248,6 +249,8 @@ footer p{margin:0;max-width:78ch}
             <option value="cenarion">Cenarion Belt · Druid</option>
           </optgroup>
         </select></span>
+        <span class="ctl"><label class="tiny" for="chest">Chest</label>
+        <input type="range" id="chest" min="0" max="100" step="1" value="0" aria-valuetext="In-game size"></span>
         <div class="seg-btns" role="group" aria-label="Camera">
           <button type="button" id="cam-front" data-cam="front">Front</button>
           <button type="button" id="cam-back" data-cam="back">Back</button>
@@ -699,12 +702,13 @@ function wire() {
 const EMB = [[0,870,140,95,116,154],[315,1230,200,73,58,172],[1092,1230,225,71,32,168],[893,663,102,101,154,172],[118,1230,115,74,142,160],[142,870,110,94,146,174],[1490,1230,98,69,158,178],[724,967,108,88,148,144],[1189,436,180,110,76,142],[1774,1230,168,67,90,168],[395,1307,169,64,88,168],[549,1059,146,84,112,152],[254,870,141,94,116,142],[406,1147,140,80,118,148],[364,663,164,102,92,146],[1229,870,147,92,106,168],[0,967,129,90,128,168],[517,1230,179,73,78,164],[158,313,135,120,122,144],[1473,967,150,87,108,164],[834,967,144,88,112,160],[824,552,194,106,62,126],[382,436,110,112,146,160],[670,185,110,124,146,136],[980,967,123,88,126,168],[397,870,161,94,96,142],[1707,1147,117,75,140,170],[164,1376,123,49,134,192],[1555,870,146,91,110,164],[0,1307,124,67,132,176],[1578,1307,178,59,78,178],[341,552,166,107,90,146],[1758,1307,164,56,92,180],[1846,768,143,96,114,156],[273,967,153,89,104,156],[548,1147,96,80,160,172],[494,436,120,112,136,150],[513,768,142,99,114,150],[782,185,130,123,126,138],[1371,436,68,110,188,154],[407,0,188,154,68,76],[867,768,132,98,124,154],[295,313,166,120,90,124],[0,0,207,183,48,8],[509,552,148,107,108,146],[1351,1059,156,83,100,136],[1319,1230,169,70,88,140],[142,1059,163,85,94,166],[413,1376,162,34,92,172],[1079,313,98,117,158,138],[0,1147,126,81,130,164],[1636,663,164,100,92,156],[428,967,104,89,152,164],[1703,870,90,91,166,156],[1441,436,183,110,72,120],[1939,552,88,103,168,136],[1020,552,132,106,124,128],[1696,313,110,114,146,156],[0,1376,162,55,102,184],[235,1230,78,74,178,180],[914,185,155,123,100,138],[1509,1059,140,83,116,144],[819,313,160,118,96,124],[697,1059,184,84,70,140],[646,1147,177,80,70,160],[1651,552,176,105,80,156],[1626,436,74,110,182,148],[698,1230,122,73,134,174],[1001,768,130,98,126,120],[1378,870,175,92,82,146],[180,185,183,125,72,100],[1808,313,142,114,114,144],[822,1230,164,72,92,180],[1215,185,144,122,112,124],[1625,967,151,86,106,164],[126,1307,151,66,106,178],[1908,436,72,109,184,138],[0,663,146,103,110,138],[1071,185,142,123,114,138],[1357,768,130,97,126,142],[981,313,96,118,160,140],[883,1059,65,84,190,160],[566,1307,174,64,82,154],[1826,1147,128,75,128,170],[1081,1307,167,62,90,160],[128,1147,88,81,168,168],[616,436,94,112,162,108],[788,0,192,146,64,66],[1105,967,118,88,138,142],[1166,0,176,137,80,86],[1771,1059,116,82,140,164],[1802,663,136,100,120,152],[0,552,143,109,114,130],[1952,313,80,114,176,138],[560,870,94,94,162,154],[365,185,155,125,100,134],[0,436,176,114,80,136],[1583,1147,122,76,136,172],[848,1376,124,14,140,256],[1778,967,178,86,76,84],[209,0,196,165,62,54],[279,1307,114,66,142,176],[1489,768,144,97,112,150],[1250,1307,160,62,96,188],[950,1059,156,84,100,160],[916,1307,163,63,92,130],[1154,552,151,106,106,146],[712,436,63,111,194,146],[0,185,178,126,78,132],[0,1230,116,75,140,160],[218,1147,186,81,70,166],[982,0,182,138,74,108],[597,0,189,149,68,86],[1043,870,184,93,72,132],[1361,185,148,122,108,140],[307,1059,71,85,184,166],[1657,185,152,121,104,142],[1225,967,124,88,132,148],[726,1376,120,32,136,256],[577,1376,147,34,110,256],[1889,1059,158,82,98,160],[289,1376,122,43,134,256],[1412,1307,164,62,92,164],[0,768,168,100,92,124],[301,436,79,113,178,140],[1133,768,106,98,150,148],[1531,0,171,133,88,86],[1702,436,108,110,148,164],[1811,185,178,121,78,132],[530,663,121,102,134,152],[148,663,128,103,128,154],[1108,1059,114,84,142,168],[1704,0,176,133,80,92],[1582,313,112,115,144,130],[1635,768,145,97,112,152],[561,313,146,119,110,146],[997,663,137,101,120,154],[1375,313,64,116,194,144],[1136,663,130,101,126,134],[657,768,130,99,126,146],[1590,1230,182,68,74,120],[522,185,146,125,110,134],[1204,1147,160,77,96,160],[825,1147,112,80,144,164],[0,1059,140,86,116,170],[0,313,156,121,100,120],[1351,967,120,88,136,152],[1882,0,86,131,170,108],[939,1147,97,80,158,168],[131,967,140,90,116,164],[1366,1147,91,77,166,176],[988,1230,102,72,154,178],[170,768,78,100,178,160],[1344,0,185,134,70,116],[1307,552,159,106,96,138],[777,436,146,111,110,150],[1795,870,149,91,108,148],[534,967,118,89,138,160],[742,1307,172,64,84,178],[1038,1147,164,79,92,168],[925,436,152,111,104,150],[1511,185,144,122,112,134],[1268,663,140,101,116,144],[250,768,124,100,132,142],[1410,663,146,101,110,144],[1441,313,139,116,118,138],[653,663,148,102,108,148],[656,870,166,94,88,156],[1459,1147,122,77,136,180],[380,1059,167,85,94,158],[1179,313,92,117,164,150],[145,552,102,109,154,148],[463,313,96,120,160,138],[1829,552,108,105,148,140],[1241,768,114,98,142,150],[803,663,88,102,168,148],[789,768,76,99,180,154],[1782,768,62,97,194,158],[1651,1059,118,83,138,170],[1224,1059,125,84,132,168],[824,870,70,94,186,154],[1079,436,108,111,148,142],[278,663,84,103,172,150],[1468,552,94,106,162,148],[896,870,76,94,180,156],[654,967,68,89,188,160],[974,870,67,94,190,160],[1558,663,76,101,180,154],[659,552,163,107,94,146],[1273,313,100,117,156,132],[178,436,121,114,140,136],[376,768,135,100,122,152],[1564,552,85,106,172,148],[1812,436,94,110,162,150],[709,313,108,119,150,136],[249,552,90,109,168,146]];
 const Worn = (() => {
   const VIEW_KEY = 'tabard-designer.view.v1';
-  const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might' };
+  const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might', chest: 0 };
   const BELTS = ['none', 'might', 'lawbringer', 'giantstalker', 'nightslayer', 'prophecy', 'earthfury', 'arcanist', 'felheart', 'cenarion'];
   const RACES = ['human', 'dwarf', 'nightelf', 'gnome', 'orc', 'scourge', 'tauren', 'troll', 'skyborne'];
   try { Object.assign(st, JSON.parse(localStorage.getItem(VIEW_KEY) || '{}')); } catch (e) { /* ignore */ }
   if (!BELTS.includes(st.belt)) st.belt = 'might';
   if (!RACES.includes(st.race)) st.race = 'human'; // saved before Blood Elf and Draenei left the list
+  st.chest = Math.max(0, Math.min(100, Math.round(+st.chest) || 0));
   const remember = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } };
   const beltCache = new Map();
   let beltImage = null;
@@ -815,6 +819,9 @@ const Worn = (() => {
     b.drawImage(current.skin, 0, 0, 2048, 1024);
     b.drawImage(tabCanvas, 512, 0);                    // tabard: TorsoUpper + TorsoLower
     if (beltImage) b.drawImage(beltImage, 512, 384, 512, 256); // belt: LegUpper, over the waist
+    // no belt: the tabard cloth and its border run on over the waist band (LegUpper rows 384-448), continuing the
+    // lowest rows the torso shows (the rows below belong to the hem of the hanging flap); the emblem stays on the chest
+    else for (const l of layers.slice(0, 2)) b.drawImage(l, 0, 340, 512, 16, 512, 384, 512, 64);
     bodyTex.needsUpdate = true;
     requestRender();
   }
@@ -858,8 +865,121 @@ const Worn = (() => {
       new THREE.MeshLambertMaterial({ map: extra ? texFrom(extra) : null, color: extra ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
       new THREE.MeshLambertMaterial({ map: eyes ? texFrom(eyes) : null, color: eyes ? 0xffffff : 0x202020 })];
     const out = { key, mesh: new THREE.Mesh(g, mats), skin, height: m.height };
+    out.mesh.frustumCulled = false; // the chest morph moves vertices past the original bounds
+    out.chest = buildChest(m, key.endsWith('_female') ? 'female' : 'male', pos, uv, nrm, idx);
+    if (out.chest) out.chest.attr = g.attributes.position;
     models.set(key, out);
     return out;
+  }
+
+  // --- chest slider: the chest swells along its normals and sways on a spring when the character turns ---
+  // The chest is found in texture space, the way chest armour is: around the bra cup (female) or the nipple (male)
+  // of the TorsoUpper section, given as u, v and a radius in pixels of a 1024x512 skin. Every race shares that layout.
+  const CHEST = { female: [0.300, 0.176, 44], male: [0.322, 0.185, 50] };
+  function buildChest(m, sex, pos, uv, nrm, idx) {
+    const h = m.height, [cu, cv, r] = CHEST[sex], ru = r / 1024, rv = r / 512;
+    const body = new Uint8Array(m.v), other = new Uint8Array(m.v);
+    for (let k = 0; k < m.body; k++) body[idx[k]] = 1;
+    for (let k = m.body; k < m.body + m.hair + m.extra; k++) other[idx[k]] = 1;
+    // the hanging tabard flap also uses TorsoUpper texels: keep to the body above the waist band
+    let waist = -Infinity;
+    for (let i = 0; i < m.v; i++) {
+      const u = uv[2 * i], v = uv[2 * i + 1];
+      if (body[i] && u >= 0.25 && u < 0.5 && v >= 0.374 && v < 0.44) waist = Math.max(waist, pos[3 * i + 1]);
+    }
+    const ids = [], w = [], dir = [];
+    for (let i = 0; i < m.v; i++) {
+      if (!body[i] || pos[3 * i + 1] <= waist) continue;
+      const du = (uv[2 * i] - cu) / ru, dv = (uv[2 * i + 1] - cv) / rv, d = Math.sqrt(du * du + dv * dv);
+      if (d >= 1) continue;
+      const nx = nrm[3 * i] / 127, ny = nrm[3 * i + 1] / 127, nz = nrm[3 * i + 2] / 127, l = Math.hypot(nx, ny, nz) || 1;
+      ids.push(i); w.push((1 + Math.cos(Math.PI * d)) / 2); dir.push(nx / l, ny / l, nz / l);
+    }
+    if (!ids.length) return null;
+    // copies of one vertex along a texture seam must move together, also a copy whose texel lies outside the chest:
+    // collect every body vertex at a chest vertex's position and give the group one weight and direction
+    const at = i => `${Math.round(pos[3 * i] * 1e4)},${Math.round(pos[3 * i + 1] * 1e4)},${Math.round(pos[3 * i + 2] * 1e4)}`;
+    const same = new Map();
+    ids.forEach((i, k) => {
+      const key = at(i);
+      if (!same.has(key)) same.set(key, []);
+      same.get(key).push(k);
+    });
+    const inChest = new Uint8Array(m.v);
+    ids.forEach(i => { inChest[i] = 1; });
+    for (let i = 0; i < m.v; i++) {
+      if (!body[i] || inChest[i]) continue;
+      const ks = same.get(at(i));
+      if (!ks) continue;
+      const k0 = ks[0];
+      ks.push(ids.length); ids.push(i); w.push(w[k0]); dir.push(dir[3 * k0], dir[3 * k0 + 1], dir[3 * k0 + 2]);
+    }
+    for (const ks of same.values()) {
+      if (ks.length < 2) continue;
+      let x = 0, y = 0, z = 0, ww = 0;
+      for (const k of ks) { x += dir[3 * k]; y += dir[3 * k + 1]; z += dir[3 * k + 2]; ww = Math.max(ww, w[k]); }
+      const l = Math.hypot(x, y, z) || 1;
+      for (const k of ks) { dir[3 * k] = x / l; dir[3 * k + 1] = y / l; dir[3 * k + 2] = z / l; w[k] = ww; }
+    }
+    // hair and fur lying on the chest move with it. Each takes the strongest pull of the chest points within reach:
+    // full strength up to 0.035 h, fading out at 0.05 h, and never less than it needs to stay in front of the skin
+    // at the largest size (the gap to the skin may close to 0.003 h)
+    const n0 = ids.length, D = 0.05 * h, FULL = 0.035 * h, INFLATE = 0.05 * h;
+    for (let i = 0; i < m.v; i++) {
+      if (!other[i]) continue;
+      let best = -1, bw = 0;
+      for (let k = 0; k < n0; k++) {
+        if (w[k] < 0.05) continue;
+        const j = ids[k] * 3, dx = pos[3 * i] - pos[j], dy = pos[3 * i + 1] - pos[j + 1], dz = pos[3 * i + 2] - pos[j + 2];
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz), gap = dx * dir[3 * k] + dy * dir[3 * k + 1] + dz * dir[3 * k + 2];
+        if (d >= D || gap <= -0.004 * h) continue;
+        const reach = w[k] * (d < FULL ? 1 : (D - d) / (D - FULL));
+        const ahead = Math.min(w[k], Math.max(0, w[k] - Math.max(0, gap - 0.003 * h) / INFLATE));
+        const ww = Math.max(reach, ahead);
+        if (ww > bw) { bw = ww; best = k; }
+      }
+      if (best < 0) continue;
+      ids.push(i); w.push(bw); dir.push(dir[3 * best], dir[3 * best + 1], dir[3 * best + 2]);
+    }
+    const I = Int32Array.from(ids), base = new Float32Array(I.length * 3);
+    I.forEach((i, k) => { base[3 * k] = pos[3 * i]; base[3 * k + 1] = pos[3 * i + 1]; base[3 * k + 2] = pos[3 * i + 2]; });
+    return { ids: I, w: Float32Array.from(w), dir: Float32Array.from(dir), base, pos, h };
+  }
+  // spring in units of the model height: about 2.2 swings a second, settles in a few seconds
+  const J = [0, 0, 0], V = [0, 0, 0], K = 190, C = 3.3;
+  const calm = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  const still = () => !!(calm && calm.matches);
+  let tPrev = 0, aPrev = 0, wPrev = 0;
+  function applyChest() {
+    const c = current && current.chest;
+    if (!c) return;
+    const s = st.chest / 100, inflate = s * 0.05 * c.h, sag = s * 0.012 * c.h, amp = s * 0.7 * c.h, P = c.pos;
+    for (let k = 0; k < c.ids.length; k++) {
+      const i = c.ids[k] * 3, q = 3 * k, w = c.w[k];
+      P[i] = c.base[q] + w * (c.dir[q] * inflate + J[0] * amp);
+      P[i + 1] = c.base[q + 1] + w * (c.dir[q + 1] * inflate - sag + J[1] * amp);
+      P[i + 2] = c.base[q + 2] + w * (c.dir[q + 2] * inflate + J[2] * amp);
+    }
+    c.attr.needsUpdate = true;
+  }
+  function resetChest() { J.fill(0); V.fill(0); tPrev = 0; aPrev = angle; wPrev = 0; applyChest(); }
+  // one step per rendered frame; turning the character pushes the chest sideways (it lags behind) and outwards
+  function stepChest(now) {
+    if (!current || !current.chest || !st.chest || still()) { J.fill(0); V.fill(0); tPrev = 0; aPrev = angle; wPrev = 0; return false; }
+    const dt = tPrev ? Math.min(0.05, Math.max(1 / 240, (now - tPrev) / 1000)) : 1 / 60;
+    tPrev = now;
+    const om = (angle - aPrev) / dt, al = Math.max(-300, Math.min(300, (om - wPrev) / dt));
+    aPrev = angle; wPrev = om;
+    const z = 0.08, F = [-al * z, -0.3 * Math.abs(al * z), Math.min(om * om * z, 4)];
+    let moving = om !== 0;
+    for (let a = 0; a < 3; a++) {
+      V[a] += (-K * J[a] - C * V[a] + F[a]) * dt;
+      J[a] = Math.max(-0.06, Math.min(0.06, J[a] + V[a] * dt));
+      if (Math.abs(J[a]) > 2e-4 || Math.abs(V[a]) > 2e-3) moving = true;
+    }
+    if (!moving) { J.fill(0); V.fill(0); tPrev = 0; wPrev = 0; }
+    applyChest();
+    return moving;
   }
   async function showModel() {
     const key = `${st.race}_${st.sex}`, token = ++loadToken;
@@ -868,7 +988,7 @@ const Worn = (() => {
       const md = await loadModel(key);
       if (token !== loadToken) return;
       if (mesh) rig.remove(mesh);
-      mesh = md.mesh; current = md; rig.add(mesh);
+      mesh = md.mesh; current = md; rig.add(mesh); resetChest();
       frame(); paintBody(); status('');
     } catch (e) {
       if (token === loadToken) status('This character did not load. Pick another race or reload the page.');
@@ -886,13 +1006,14 @@ const Worn = (() => {
   // --- interaction ---
   function requestRender() {
     if (raf || !renderer || st.view !== 'worn') return;
-    raf = requestAnimationFrame(() => {
+    raf = requestAnimationFrame(now => {
       raf = 0;
       if (goal !== null) {
         const d = goal - angle;
         if (Math.abs(d) < 0.002) { angle = goal; goal = null; } else { angle += d * 0.18; requestRender(); }
       }
       rig.rotation.y = angle;
+      if (stepChest(now)) requestRender();
       renderer.render(scene, camera);
     });
   }
@@ -924,6 +1045,8 @@ const Worn = (() => {
     $('cam-close').setAttribute('aria-pressed', String(st.close));
     $('race').value = st.race;
     $('belt').value = st.belt;
+    $('chest').value = st.chest;
+    $('chest').setAttribute('aria-valuetext', st.chest ? `${st.chest} percent larger` : 'In-game size');
     $('spot-crest').hidden = worn; $('ring-row').hidden = worn;
     $('spot-worn').hidden = !worn; $('worn-controls').hidden = !worn;
   }
@@ -954,6 +1077,13 @@ const Worn = (() => {
     document.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; remember(); syncControls(); if (A) showModel(); }));
     $('race').addEventListener('change', e => { st.race = e.target.value; remember(); if (A) showModel(); });
     $('belt').addEventListener('change', async e => { st.belt = e.target.value; remember(); await loadBelt(); paintBody(); });
+    $('chest').addEventListener('input', e => {
+      const before = st.chest;
+      st.chest = +e.target.value; remember();
+      $('chest').setAttribute('aria-valuetext', st.chest ? `${st.chest} percent larger` : 'In-game size');
+      if (!still()) { V[1] -= 0.5 * (st.chest - before) / 100; V[2] += 0.3 * (st.chest - before) / 100; }
+      applyChest(); requestRender();
+    });
     $('cam-front').addEventListener('click', () => turnTo(0));
     $('cam-back').addEventListener('click', () => turnTo(Math.PI));
     $('cam-close').addEventListener('click', () => { st.close = !st.close; remember(); syncControls(); frame(); });

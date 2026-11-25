@@ -11,7 +11,8 @@ Live: https://tabard.happyfanclub.fun
 - **Crest** view: Blizzard's Armory tabard art, tinted to the measured in-game cloth colours.
 - **Worn in game** view: the playable races of WoW Forever (the eight original races and the Skyborne), male and
   female, in the first frame of their Stand animation, wearing the in-game Guild Tabard textures. Optional Tier 1 belt
-  over the waist.
+  over the waist; with the belt hidden the tabard cloth runs on over it. A Chest slider (for fun) swells the chest,
+  which sways on a spring when the character turns.
 - Design codes and links (`#t-129-17-4-17-33`), saved designs (in the browser), copyable colour values (in-game cloth
   and the guild crest API value).
 
