@@ -6,11 +6,12 @@ in 3D on the game's own character models.
 Live: https://tabard.happyfanclub.fun
 
 - 196 emblems in 17 colours, 6 borders in 17 colours, 51 background colours: the vendor's options, nothing added and
-  nothing left out. They come from the game's own tables and are the same in Retail, Mists of Pandaria Classic,
-  Anniversary and Classic Era.
+  nothing left out. They come from the game's own tables and are the same in WoW Forever, Retail, Mists of
+  Pandaria Classic, Anniversary and Classic Era.
 - **Crest** view: Blizzard's Armory tabard art, tinted to the measured in-game cloth colours.
-- **Worn in game** view: 10 races, male and female, in the first frame of their Stand animation, wearing the in-game
-  Guild Tabard textures. Optional Tier 1 belt over the waist.
+- **Worn in game** view: the playable races of WoW Forever (the eight original races and the Skyborne), male and
+  female, in the first frame of their Stand animation, wearing the in-game Guild Tabard textures. Optional Tier 1 belt
+  over the waist.
 - Design codes and links (`#t-129-17-4-17-33`), saved designs (in the browser), copyable colour values (in-game cloth
   and the guild crest API value).
 
@@ -33,14 +34,16 @@ Needs Python 3, `curl`, and `pip install -r tools/requirements.txt`. Downloads g
 cd tools
 python build_crest.py     # docs/img: Armory art + the colour palette in index.html
 python build_ingame.py    # docs/img3d: in-game emblem atlas, border/background sheets, colour tables, EMB in index.html
-python fetchmodels.py     # resolve and download the 20 character models and their textures
+python fetchmodels.py     # resolve and download the 18 character models and their textures
 python export.py check    # optional: renders a check sheet of all models to the cache folder
 python export.py export   # docs/models: posed meshes, skins, hair
 python build_belts.py     # docs/models/belts: Tier 1 belt textures
 ```
 
-`tools/overrides.json` holds the fixes the data cannot tell: extra geosets (Undead bones, Tauren horns), a brown
-Tauren fur, and two models pinned to build 12.1.5.70961 because the latest model file did not match its skin file.
+`tools/overrides.json` holds the fixes the data cannot tell: extra geosets (Undead bones, Tauren horns, Skyborne
+eyebrows), a brown Tauren fur, and the Skyborne file IDs. Those files have no listfile name; they come from ChrModel
+218/219 and the first Skin Color, Face, Hair Style and Hair Color choice in the ChrCustomization tables of WoW Forever
+(build 1.60.1.71091).
 
 ## Sources
 

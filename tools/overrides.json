@@ -1,9 +1,9 @@
 {
- "_comment": "Per model: add/remove geosets, pick textures (FileDataIDs) or pin the model file to a build whose skin file matches.",
+ "_comment": "Per model: add/remove geosets, pick textures (FileDataIDs) or pin the model file to a build whose skin file matches. Skyborne files have no listfile name: they come from ChrModel 218/219 and the first Skin Color, Face, Hair Style (hair geoset 2) and Hair Color choice in the ChrCustomization tables of WoW Forever 1.60.1.71091.",
  "scourge_male": {"add": [1901, 2901, 3001]},
  "scourge_female": {"add": [1901, 2901, 3001]},
  "tauren_male": {"add": [2401], "tex": {"skintex": 976818, "extra": 976676, "hair": 976676}},
  "tauren_female": {"add": [2401], "tex": {"skintex": 996043, "extra": 996042, "hair": 996042}},
- "bloodelf_male": {"build": "12.1.5.70961"},
- "draenei_female": {"build": "12.1.5.70961"}
+ "skyborne_male": {"hair": 2, "add": [3401], "files": {"m2": 7478487, "skin": 7479268, "skintex": 7485466, "pelvis": 7494165, "face": 7484932, "hair": 7485541}},
+ "skyborne_female": {"hair": 2, "add": [3401], "files": {"m2": 7478494, "skin": 7479375, "skintex": 7484887, "pelvis": 7494043, "torso": 7494001, "face": 7484218, "hair": 7485541}}
 }

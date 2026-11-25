@@ -48,16 +48,16 @@
   "hairTex": true
  },
  "nightelf_male": {
-  "v": 3440,
-  "body": 16023,
+  "v": 3946,
+  "body": 18237,
   "hair": 660,
   "extra": 0,
   "height": 2.397,
   "hairTex": true
  },
  "nightelf_female": {
-  "v": 3353,
-  "body": 15804,
+  "v": 3817,
+  "body": 17880,
   "hair": 738,
   "extra": 0,
   "height": 2.242,
@@ -129,36 +129,20 @@
   "height": 2.37,
   "hairTex": true
  },
- "bloodelf_male": {
-  "v": 3937,
-  "body": 17607,
-  "hair": 1788,
+ "skyborne_male": {
+  "v": 5186,
+  "body": 20400,
+  "hair": 3843,
   "extra": 0,
   "height": 2.16,
   "hairTex": true
  },
- "bloodelf_female": {
-  "v": 3657,
-  "body": 17442,
-  "hair": 744,
+ "skyborne_female": {
+  "v": 4730,
+  "body": 20163,
+  "hair": 2367,
   "extra": 0,
   "height": 1.967,
-  "hairTex": true
- },
- "draenei_male": {
-  "v": 4119,
-  "body": 19068,
-  "hair": 480,
-  "extra": 0,
-  "height": 2.442,
-  "hairTex": true
- },
- "draenei_female": {
-  "v": 4130,
-  "body": 18780,
-  "hair": 666,
-  "extra": 0,
-  "height": 2.315,
   "hairTex": true
  }
 }

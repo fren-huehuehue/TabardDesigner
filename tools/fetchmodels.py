@@ -1,7 +1,8 @@
 """Resolve model, skin file and texture FileDataIDs for each race/gender and download them.
 
-Writes tools/cache/models-index.json, which export.py reads. Fixes that the listfile cannot tell us
-(a different skin colour, a model file pinned to a build) come from overrides.json.
+Writes models-index.json in the cache, which export.py reads. Fixes that the listfile cannot tell us
+(a different skin colour, a model file pinned to a build) come from overrides.json. A model whose files have no
+listfile name (Skyborne) lists all its FileDataIDs there under "files".
 """
 import json
 import os
@@ -10,7 +11,8 @@ import re
 from wago import CACHE, file, search
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RACES = ['human', 'orc', 'dwarf', 'nightelf', 'scourge', 'tauren', 'gnome', 'troll', 'bloodelf', 'draenei']
+# the playable races of WoW Forever (build 1.60.1): the eight original races and the Skyborne
+RACES = ['human', 'orc', 'dwarf', 'nightelf', 'scourge', 'tauren', 'gnome', 'troll', 'skyborne']
 OVR = json.load(open(os.path.join(HERE, 'overrides.json')))
 INDEX = os.path.join(CACHE, 'models-index.json')
 
@@ -28,6 +30,9 @@ def lowest(inv, patterns):
 
 
 def resolve(race, sex):
+    o = OVR.get(f'{race}_{sex}', {})
+    if o.get('files'):
+        return dict(o['files'])
     inv = {v.split('/')[-1]: k for k, v in search(f'character/{race}/{sex}/').items()}
     p, q = f'{race}{sex}', f'{race}_{sex}'  # night elf textures use both spellings
     res = {
@@ -40,7 +45,6 @@ def resolve(race, sex):
     }
     if sex == 'female':
         res['torso'] = lowest(inv, [rf'{x}nakedtorsoskin00_00_hd\.blp' for x in (p, q)] + [rf'{x}nakedtorsoskin\d\d_\d\d_hd\.blp' for x in (p, q)])
-    o = OVR.get(f'{race}_{sex}', {})
     res.update(o.get('tex', {}))
     if o.get('build'):
         res['build'] = o['build']
@@ -54,7 +58,7 @@ if __name__ == '__main__':
             r = resolve(race, sex)
             key = f'{race}_{sex}'
             file(r['m2'], r.get('build'))
-            for kind in ('skin', 'skintex', 'pelvis', 'torso', 'hair', 'extra'):
+            for kind in ('skin', 'skintex', 'pelvis', 'torso', 'face', 'hair', 'extra'):
                 if r.get(kind):
                     file(r[kind])
             index[key] = r

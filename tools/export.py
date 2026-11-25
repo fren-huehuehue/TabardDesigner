@@ -41,7 +41,7 @@ def choose(key, info):
     hair = o.get('hair', hairs[0] if hairs else None)
     if hair is not None and hair in ids:
         sel.append(hair)
-    for g in (4, 5, 13, 18, 20, 22):
+    for g in (4, 5, 13, 18, 20, 22, 23):  # 23: elf hands (the elves' 401 is only the wrist)
         if g * 100 + 1 in ids:
             sel.append(g * 100 + 1)
         elif g in groups:
@@ -70,6 +70,8 @@ def body_texture(key, with_tabard=None):
         base.alpha_composite(T('pelvis').resize((256, 128)), (256, 192))
     if r.get('torso'):
         base.alpha_composite(T('torso').resize((256, 128)), (256, 0))
+    if r.get('face'):  # a separate face layer (Skyborne): section 10, the right half
+        base.alpha_composite(T('face').resize((512, 512)), (512, 0))
     if with_tabard is not None:
         base.alpha_composite(with_tabard.resize((256, 192)), (256, 0))
     return base
@@ -187,5 +189,9 @@ if __name__ == '__main__':
         check_sheet(keys, os.path.join(CACHE, 'models_check.png'))
     else:
         metas = {k: export(k) for k in keys}
-        json.dump(metas, open(os.path.join(OUT, 'models.json'), 'w'), indent=1)
+        path = os.path.join(OUT, 'models.json')
+        if len(sys.argv) > 2 and os.path.exists(path):  # a subset updates its own entries only
+            old = json.load(open(path))
+            metas = {k: metas.get(k, old.get(k)) for k in INDEX if k in metas or k in old}
+        json.dump(metas, open(path, 'w'), indent=1)
         print(json.dumps(metas, indent=1))

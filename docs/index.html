@@ -208,14 +208,15 @@ footer p{margin:0;max-width:78ch}
             <option value="dwarf">Dwarf</option>
             <option value="nightelf">Night Elf</option>
             <option value="gnome">Gnome</option>
-            <option value="draenei">Draenei</option>
           </optgroup>
           <optgroup label="Horde">
             <option value="orc">Orc</option>
             <option value="scourge">Undead</option>
             <option value="tauren">Tauren</option>
             <option value="troll">Troll</option>
-            <option value="bloodelf">Blood Elf</option>
+          </optgroup>
+          <optgroup label="Alliance and Horde">
+            <option value="skyborne">Skyborne</option>
           </optgroup>
         </select></span>
         <div class="seg-btns" role="group" aria-label="Body type">
@@ -318,9 +319,9 @@ footer p{margin:0;max-width:78ch}
   </section>
 
   <footer>
-    <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
+    <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in WoW Forever, Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
     <p>Cloth colors were measured from the in-game tabard textures, so the preview matches the tabard you wear. Crest API colors are the GuildColor values that Blizzard's guild crest and the Armory use; they are often darker or a slightly different hue.</p>
-    <p>Worn in game uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
+    <p>Worn in game shows the playable races of WoW Forever: the eight original races and the Skyborne. It uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
     <p>Crest artwork from Blizzard's Armory tabard renderer; models and textures from the game client. World of Warcraft is a trademark of Blizzard Entertainment.</p>
   </footer>
 </div>
@@ -664,8 +665,10 @@ const Worn = (() => {
   const VIEW_KEY = 'tabard-designer.view.v1';
   const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might' };
   const BELTS = ['none', 'might', 'lawbringer', 'giantstalker', 'nightslayer', 'prophecy', 'earthfury', 'arcanist', 'felheart', 'cenarion'];
+  const RACES = ['human', 'dwarf', 'nightelf', 'gnome', 'orc', 'scourge', 'tauren', 'troll', 'skyborne'];
   try { Object.assign(st, JSON.parse(localStorage.getItem(VIEW_KEY) || '{}')); } catch (e) { /* ignore */ }
   if (!BELTS.includes(st.belt)) st.belt = 'might';
+  if (!RACES.includes(st.race)) st.race = 'human'; // saved before Blood Elf and Draenei left the list
   const remember = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } };
   const beltCache = new Map();
   let beltImage = null;
@@ -782,6 +785,7 @@ const Worn = (() => {
   function texFrom(img) {
     const t = new THREE.Texture(img);
     t.flipY = false; t.encoding = THREE.sRGBEncoding; t.needsUpdate = true;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; // hair UVs run past 0..1 (Skyborne); the game repeats these textures
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     return t;
   }
