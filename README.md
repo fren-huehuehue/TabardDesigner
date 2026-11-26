@@ -9,8 +9,9 @@ Live: https://tabard.happyfanclub.fun
   nothing left out. They come from the game's own tables and are the same in WoW Forever, Retail, Mists of
   Pandaria Classic, Anniversary and Classic Era.
 - **Crest** view: Blizzard's Armory tabard art, tinted to the measured in-game cloth colours.
-- **Worn in game** view: the playable races of WoW Forever (the eight original races and the Skyborne), male and
-  female, in the first frame of their Stand animation, wearing the in-game Guild Tabard textures. Optional Tier 1 belt
+- **Character** view: the playable races of WoW Forever (the eight original races and the Skyborne), male and
+  female, in the first frame of their Stand animation, wearing the in-game Guild Tabard textures. Optional Tier 0.5 set
+  (Dungeon Set 2: helmet, shoulders, gloves, bracers, legs, boots, chest under the tabard) and Tier 1 belt
   over the waist; with the belt hidden the tabard cloth runs on over it. A Chest slider (for fun) swells the chest,
   which sways on a spring when the character turns.
 - Design codes and links (`#t-129-17-4-17-33`), saved designs (in the browser), copyable colour values (in-game cloth
@@ -39,6 +40,7 @@ python fetchmodels.py     # resolve and download the 18 character models and the
 python export.py check    # optional: renders a check sheet of all models to the cache folder
 python export.py export   # docs/models: posed meshes, skins, hair
 python build_belts.py     # docs/models/belts: Tier 1 belt textures
+python build_sets.py      # docs/models/sets + items: Tier 0.5 sets (textures, geosets, helmets, shoulders)
 ```
 
 Eye textures come from the first Eye Color choice (Eye Glow for the Undead) in the ChrCustomization tables.

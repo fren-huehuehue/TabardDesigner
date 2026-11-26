@@ -1,7 +1,7 @@
 """Pose an M2 model in the first frame of its Stand animation."""
 import struct
 import numpy as np
-from m2 import chunks
+from m2 import attachments, chunks
 from wago import file
 
 
@@ -48,6 +48,10 @@ class Skeleton:
             self.inline = self.bd
             if 'SKPD' in ch:
                 self.parent = True
+            self.attachments = {}
+            if 'SKA1' in ch:  # attachment points of a .skel: offsets relative to the chunk, like SKB1
+                o, sz = ch['SKA1'][0]
+                self.attachments = attachments(skel[o:o + sz], 0)
         else:
             d = m.d
             self.bd = d
@@ -57,6 +61,7 @@ class Skeleton:
             self.seqs = [(d, off + i * 64) for i in range(n)]
             self.afid = self._afid(raw, m.ch)
             self.inline = d
+            self.attachments = m.attachments
 
     @staticmethod
     def _afid(raw, ch):
@@ -101,6 +106,15 @@ class Skeleton:
         for b in range(n):
             self._resolve(b, info, mats)
         return mats
+
+    def attachment(self, mats, aid):
+        """4x4 matrix from attachment space to model space, posed like the bones, or None"""
+        a = self.attachments.get(aid) or (self.m.attachments.get(aid) if self.m.attachments else None)
+        if a is None:
+            return None
+        bone, p = a
+        T = np.eye(4); T[:3, 3] = p
+        return (mats[bone] if bone < len(mats) else np.eye(4)) @ T
 
     def _track(self, d, off, si, ext, size, read):
         interp, gseq = struct.unpack_from('<Hh', d, off)

@@ -89,7 +89,7 @@ def geometry(m, s, info, sel, hairtex_ok):
     from pose import Skeleton, pose_vertices
     if not hasattr(m, '_mats'):
         try:
-            m._mats = Skeleton(m).matrices()
+            m._skel = Skeleton(m); m._mats = m._skel.matrices()
         except Exception as e:
             print('pose failed', e); m._mats = None
     mats = m._mats
@@ -146,34 +146,59 @@ def check_sheet(keys, path):
     sheet.save(path)
 
 
+# Geoset groups that armour switches (gloves, boots, ears, sleeves, kneepads, chest, pants, robe, belt, feet, torso,
+# hands). Every geoset of these groups is exported; the page shows the ones a set asks for.
+GEAR = (4, 5, 7, 8, 9, 10, 11, 13, 18, 20, 22, 23)
+# attachment points for armour models: Helm, ShoulderRight, ShoulderLeft
+ATT = {'helm': 11, 'shoulderR': 5, 'shoulderL': 6}
+KINDS = ['body', 'hair', 'extra', 'eyes']
+
+
 def export(key):
     m, s = load(key); info = subinfo(m, s); sel = choose(key, info)
-    parts = geometry(m, s, info, sel, True)
-    # WoW (x fwd, y left, z up) -> three (X=y, Y=z, Z=x)
-    pos = []; nrm = []; uv = []; tri = {'body': [], 'hair': [], 'extra': [], 'eyes': []}; base = 0
+    gear = sorted(g for g in info if g // 100 in GEAR and g not in sel)
+    parts = geometry(m, s, info, sel + gear, True)
+    # WoW (x fwd, y left, z up) -> three (X=y, Y=z, Z=x), centred on the geosets shown without armour
+    base_pos = np.concatenate([P[:, [1, 2, 0]] for P, N, UV, I, k, g in parts if g in sel]).astype(np.float64)
+    off = np.array([(base_pos[:, 0].min() + base_pos[:, 0].max()) / 2, base_pos[:, 1].min(),
+                    (base_pos[:, 2].min() + base_pos[:, 2].max()) / 2])
+    pos = []; nrm = []; uv = []; idx = []; geo = []; base = 0; start = 0
     for P, N, UV, I, k, g in parts:
-        pos.append(P[:, [1, 2, 0]]); nrm.append(N[:, [1, 2, 0]]); uv.append(UV)
-        tri[k].append(I + base); base += len(P)
-    assert base < 65536, base
+        pos.append(P[:, [1, 2, 0]] - off); nrm.append(N[:, [1, 2, 0]]); uv.append(UV)
+        tri = (I + base).ravel(); idx.append(tri)
+        geo.append([int(g), KINDS.index(k), start, int(len(tri))])
+        start += len(tri); base += len(P)
     pos = np.concatenate(pos).astype(np.float32); nrm = np.concatenate(nrm).astype(np.float32); uv = np.concatenate(uv).astype(np.float32)
-    pos[:, 1] -= pos[:, 1].min()
-    pos[:, 0] -= (pos[:, 0].min() + pos[:, 0].max()) / 2
-    pos[:, 2] -= (pos[:, 2].min() + pos[:, 2].max()) / 2
     nrm /= (np.linalg.norm(nrm, axis=1, keepdims=True) + 1e-9)
     n8 = np.clip(np.round(nrm * 127), -127, 127).astype(np.int8).tobytes()
     n8 += b'\0' * ((-len(n8)) % 4)
-    idx = {k: (np.concatenate(v).astype(np.uint16).ravel() if v else np.zeros(0, np.uint16)) for k, v in tri.items()}
+    wide = base >= 65536
+    tris = np.concatenate(idx).astype(np.uint32 if wide else np.uint16)
     os.makedirs(OUT, exist_ok=True)
-    # layout: pos f32 (12v) | uv f32 (8v) | normals i8 (3v, padded to 4) | body u16 | hair u16 | extra u16 | eyes u16
-    blob = pos.tobytes() + uv.tobytes() + n8 + b''.join(idx[k].tobytes() for k in ('body', 'hair', 'extra', 'eyes'))
+    # layout: pos f32 (12v) | uv f32 (8v) | normals i8 (3v, padded to 4) | indices (u16, or u32 when i32), per geoset
+    # in the order of meta.geo = [[geoset, kind (body/hair/extra/eyes), first index, index count], ...]
+    blob = pos.tobytes() + uv.tobytes() + n8 + tris.tobytes()
     # artifacts only serve text and media types, so the page reads base64 text (GitHub Pages compresses it)
     open(os.path.join(OUT, f'{key}.b64.txt'), 'w').write(base64.b64encode(blob).decode())
-    meta = dict(v=int(len(pos)), body=int(len(idx['body'])), hair=int(len(idx['hair'])), extra=int(len(idx['extra'])),
-                eyes=int(len(idx['eyes'])), height=round(float(pos[:, 1].max()), 3))
+    meta = dict(v=int(len(pos)), n=int(len(tris)), geo=geo, base=[int(g) for g in sel],
+                height=round(float(base_pos[:, 1].max() - off[1]), 3))
+    if wide:
+        meta['i32'] = True
+    # attachment matrices: item model space (WoW axes) -> page space, column-major for THREE.Matrix4.fromArray
+    if getattr(m, '_mats', None) is not None:
+        swap = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], np.float64)
+        shift = np.eye(4); shift[:3, 3] = -off
+        att = {}
+        for name, aid in ATT.items():
+            A = m._skel.attachment(m._mats, aid)
+            if A is not None:
+                att[name] = [round(float(x), 5) for x in (shift @ swap @ A).T.ravel()]
+        meta['att'] = att
     body_texture(key).convert('RGB').save(os.path.join(OUT, f'{key}-skin.jpg'), quality=85)
+    counts = {k: sum(c for g, kk, st, c in geo if KINDS[kk] == k and g in sel) for k in KINDS}
     for kind in ('hair', 'extra', 'eyes'):
         t = hair_texture(key, kind)
-        if t is not None and meta[kind]:
+        if t is not None and counts[kind]:
             if max(t.size) > 512:
                 t = t.resize((t.width // 2, t.height // 2), Image.LANCZOS)
             t.save(os.path.join(OUT, f'{key}-{kind}.webp'), 'WEBP', quality=85)

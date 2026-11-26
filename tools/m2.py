@@ -5,6 +5,13 @@ def chunks(b):
         tag=b[o:o+4].decode('latin1'); sz=struct.unpack_from('<I',b,o+4)[0]
         out.setdefault(tag,[]).append((o+8,sz)); o+=8+sz
     return out
+def attachments(d,at):
+    """{attachment id: (bone, position)} from an M2Array of M2Attachment (40 bytes) at offset at of d"""
+    n,off=struct.unpack_from('<II',d,at); out={}
+    for i in range(n):
+        aid,bone=struct.unpack_from('<IH',d,off+i*40)
+        out.setdefault(aid,(bone,struct.unpack_from('<3f',d,off+i*40+8)))
+    return out
 class M2:
     def __init__(s,path):
         b=open(path,'rb').read(); s.ch=chunks(b)
@@ -22,6 +29,9 @@ class M2:
         n,off=arr(0x80); s.texCombos=list(struct.unpack_from(f'<{n}H',d,off))
         n,off=arr(0x68); s.texLookupById=list(struct.unpack_from(f'<{n}h',d,off))
         n,off=arr(0x2C); s.nbones=n; s.bonesoff=off
+        n,off=arr(0x70); s.materials=[struct.unpack_from('<HH',d,off+i*4) for i in range(n)]  # (flags, blend mode)
+        n,off=arr(0x88); s.texCoordCombos=list(struct.unpack_from(f'<{n}h',d,off))  # -1: environment mapped
+        s.attachments=attachments(d,0xF0)
         s.sfid=[]; 
         if 'SFID' in s.ch:
             o,sz=s.ch['SFID'][0]; s.sfid=list(struct.unpack_from(f'<{sz//4}I',b,o))
@@ -41,4 +51,4 @@ class Skin:
         n,off=arr(36); s.batches=[]
         for i in range(n):
             v=struct.unpack_from('<BbHHHHHHHHHHH',d,off+i*24)
-            s.batches.append(dict(flags=v[0],shader=v[2],sub=v[3],geoset=v[4],mat=v[6],texCount=v[8],texCombo=v[9]))
+            s.batches.append(dict(flags=v[0],shader=v[2],sub=v[3],geoset=v[4],mat=v[6],texCount=v[8],texCombo=v[9],coord=v[10]))

@@ -1,4 +1,4 @@
-"""Assets for the Worn in game view: the Guild Tabard's in-game torso textures and colour tables.
+"""Assets for the Character view: the Guild Tabard's in-game torso textures and colour tables.
 
 - img3d/emblems-ingame.webp + emblem-index.json: each emblem's white (colour 14) TorsoUpper + TorsoLower texture,
   rolled by 256 px so the emblem sits whole in the middle, cropped and kept at half size. Entry: [x, y, w, h, x0, y0]

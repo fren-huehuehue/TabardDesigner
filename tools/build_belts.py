@@ -1,4 +1,4 @@
-"""Belt textures for the Worn in game view: the nine Tier 1 belts from Molten Core.
+"""Belt textures for the Character view: the nine Tier 1 belts from Molten Core.
 
 Classic belts are a single LegUpper texture (no buckle model, no extra geoset). The page draws it over the waist
 band (geoset 1801) of the character texture. Item -> appearance -> display info -> material for section 5 (LegUpper)

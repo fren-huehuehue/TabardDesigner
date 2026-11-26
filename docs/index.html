@@ -166,7 +166,7 @@ footer p{margin:0;max-width:78ch}
 
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--raised);color:var(--ink);border:1px solid var(--gold-dim);border-radius:var(--r);padding:8px 14px;font-size:.92rem;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:20;max-width:calc(100% - 32px)}
 
-/* worn view */
+/* character view */
 .viewbar{display:flex;justify-content:center}
 .viewbar .seg-btns button{font-size:.95rem;padding:6px 14px}
 .spot.worn{position:relative;padding-block:0}
@@ -202,7 +202,7 @@ footer p{margin:0;max-width:78ch}
 <div class="page">
   <header class="masthead">
     <h1>Guild Tabard Designer</h1>
-    <p class="lede">The same choices as the guild tabard vendor in World of Warcraft, nothing added and nothing left out: <b>196</b> emblems in <b>17</b> colors, <b>6</b> borders in <b>17</b> colors and <b>51</b> background colors. Switch to <b>Worn in game</b> to see it on any of <b>9</b> races.</p>
+    <p class="lede">The same choices as the guild tabard vendor in World of Warcraft, nothing added and nothing left out: <b>196</b> emblems in <b>17</b> colors, <b>6</b> borders in <b>17</b> colors and <b>51</b> background colors. Switch to <b>Character</b> to see it worn by any of <b>9</b> races.</p>
   </header>
 
   <main class="bench">
@@ -210,7 +210,7 @@ footer p{margin:0;max-width:78ch}
       <div class="viewbar">
         <div class="seg-btns" role="group" aria-label="View">
           <button type="button" id="view-crest" data-view="crest" aria-pressed="true">Crest</button>
-          <button type="button" id="view-worn" data-view="worn" aria-pressed="false">Worn in game</button>
+          <button type="button" id="view-worn" data-view="worn" aria-pressed="false">Character</button>
         </div>
       </div>
 
@@ -247,9 +247,25 @@ footer p{margin:0;max-width:78ch}
           <button type="button" id="sex-male" data-sex="male" aria-pressed="true">Male</button>
           <button type="button" id="sex-female" data-sex="female" aria-pressed="false">Female</button>
         </div>
+        <span class="ctl"><label class="tiny" for="armor">Armor</label>
+        <select id="armor">
+          <option value="none">No armor</option>
+          <optgroup label="Tier 0.5 · Dungeon Set 2">
+            <option value="heroism">Battlegear of Heroism · Warrior</option>
+            <option value="soulforge">Soulforge Armor · Paladin</option>
+            <option value="beastmaster">Beastmaster Armor · Hunter</option>
+            <option value="darkmantle">Darkmantle Armor · Rogue</option>
+            <option value="virtuous">Vestments of the Virtuous · Priest</option>
+            <option value="fivethunders">The Five Thunders · Shaman</option>
+            <option value="sorcerer">Sorcerer's Regalia · Mage</option>
+            <option value="deathmist">Deathmist Raiment · Warlock</option>
+            <option value="feralheart">Feralheart Raiment · Druid</option>
+          </optgroup>
+        </select></span>
         <span class="ctl"><label class="tiny" for="belt">Belt</label>
         <select id="belt">
           <option value="none">Hide belt</option>
+          <option value="set" id="belt-set">Belt of the set</option>
           <optgroup label="Tier 1 · Molten Core">
             <option value="might">Belt of Might · Warrior</option>
             <option value="lawbringer">Lawbringer Belt · Paladin</option>
@@ -369,7 +385,7 @@ footer p{margin:0;max-width:78ch}
   <footer>
     <p>The options and their order come from the game's own guild tabard tables (GuildTabardEmblem, GuildTabardBorder, GuildTabardBackground). They are identical in WoW Forever, Retail, Mists of Pandaria Classic, Anniversary and Classic Era.</p>
     <p>Cloth colors were measured from the in-game tabard textures, so the preview matches the tabard you wear. Crest API colors are the GuildColor values that Blizzard's guild crest and the Armory use; they are often darker or a slightly different hue.</p>
-    <p>Worn in game shows the playable races of WoW Forever: the eight original races and the Skyborne. It uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Pick one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
+    <p>Character shows the playable races of WoW Forever: the eight original races and the Skyborne. It uses the game's own character models in the first frame of their Stand animation, with the in-game Guild Tabard textures. A tabard covers the upper and lower torso; the waist belongs to the belt slot. Dress the character in one of the nine Tier 0.5 sets (Dungeon Set 2) with its helmet, shoulders, gloves, bracers, legs and boots; the chest piece goes under the tabard, as in game. Pick the set's own belt or one of the Tier 1 belts from Molten Core, or hide the belt to see the full tabard with nothing over the waist. The models mirror the tabard texture down the middle of the chest and the back, so an asymmetric emblem looks symmetric when worn; this view shows it the same way. An Armory character cannot be loaded here: the Armory only renders what a character wears now, and this page cannot reach Blizzard's servers.</p>
     <p>Crest artwork from Blizzard's Armory tabard renderer; models and textures from the game client. Not affiliated with or endorsed by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.</p>
     <p class="visits" id="visits" hidden></p>
   </footer>
@@ -747,30 +763,39 @@ function wire() {
   window.addEventListener('hashchange', () => { const s = fromCode(location.hash); if (s) setAll(s); });
 }
 
-// ---------- worn in game (3D) ----------
+// ---------- character (3D) ----------
 // in-game emblem crops: [x, y, w, h] in the half-size atlas, [x0, y0] in the rolled 512x384 torso sheet
 const EMB = [[0,870,140,95,116,154],[315,1230,200,73,58,172],[1092,1230,225,71,32,168],[893,663,102,101,154,172],[118,1230,115,74,142,160],[142,870,110,94,146,174],[1490,1230,98,69,158,178],[724,967,108,88,148,144],[1189,436,180,110,76,142],[1774,1230,168,67,90,168],[395,1307,169,64,88,168],[549,1059,146,84,112,152],[254,870,141,94,116,142],[406,1147,140,80,118,148],[364,663,164,102,92,146],[1229,870,147,92,106,168],[0,967,129,90,128,168],[517,1230,179,73,78,164],[158,313,135,120,122,144],[1473,967,150,87,108,164],[834,967,144,88,112,160],[824,552,194,106,62,126],[382,436,110,112,146,160],[670,185,110,124,146,136],[980,967,123,88,126,168],[397,870,161,94,96,142],[1707,1147,117,75,140,170],[164,1376,123,49,134,192],[1555,870,146,91,110,164],[0,1307,124,67,132,176],[1578,1307,178,59,78,178],[341,552,166,107,90,146],[1758,1307,164,56,92,180],[1846,768,143,96,114,156],[273,967,153,89,104,156],[548,1147,96,80,160,172],[494,436,120,112,136,150],[513,768,142,99,114,150],[782,185,130,123,126,138],[1371,436,68,110,188,154],[407,0,188,154,68,76],[867,768,132,98,124,154],[295,313,166,120,90,124],[0,0,207,183,48,8],[509,552,148,107,108,146],[1351,1059,156,83,100,136],[1319,1230,169,70,88,140],[142,1059,163,85,94,166],[413,1376,162,34,92,172],[1079,313,98,117,158,138],[0,1147,126,81,130,164],[1636,663,164,100,92,156],[428,967,104,89,152,164],[1703,870,90,91,166,156],[1441,436,183,110,72,120],[1939,552,88,103,168,136],[1020,552,132,106,124,128],[1696,313,110,114,146,156],[0,1376,162,55,102,184],[235,1230,78,74,178,180],[914,185,155,123,100,138],[1509,1059,140,83,116,144],[819,313,160,118,96,124],[697,1059,184,84,70,140],[646,1147,177,80,70,160],[1651,552,176,105,80,156],[1626,436,74,110,182,148],[698,1230,122,73,134,174],[1001,768,130,98,126,120],[1378,870,175,92,82,146],[180,185,183,125,72,100],[1808,313,142,114,114,144],[822,1230,164,72,92,180],[1215,185,144,122,112,124],[1625,967,151,86,106,164],[126,1307,151,66,106,178],[1908,436,72,109,184,138],[0,663,146,103,110,138],[1071,185,142,123,114,138],[1357,768,130,97,126,142],[981,313,96,118,160,140],[883,1059,65,84,190,160],[566,1307,174,64,82,154],[1826,1147,128,75,128,170],[1081,1307,167,62,90,160],[128,1147,88,81,168,168],[616,436,94,112,162,108],[788,0,192,146,64,66],[1105,967,118,88,138,142],[1166,0,176,137,80,86],[1771,1059,116,82,140,164],[1802,663,136,100,120,152],[0,552,143,109,114,130],[1952,313,80,114,176,138],[560,870,94,94,162,154],[365,185,155,125,100,134],[0,436,176,114,80,136],[1583,1147,122,76,136,172],[848,1376,124,14,140,256],[1778,967,178,86,76,84],[209,0,196,165,62,54],[279,1307,114,66,142,176],[1489,768,144,97,112,150],[1250,1307,160,62,96,188],[950,1059,156,84,100,160],[916,1307,163,63,92,130],[1154,552,151,106,106,146],[712,436,63,111,194,146],[0,185,178,126,78,132],[0,1230,116,75,140,160],[218,1147,186,81,70,166],[982,0,182,138,74,108],[597,0,189,149,68,86],[1043,870,184,93,72,132],[1361,185,148,122,108,140],[307,1059,71,85,184,166],[1657,185,152,121,104,142],[1225,967,124,88,132,148],[726,1376,120,32,136,256],[577,1376,147,34,110,256],[1889,1059,158,82,98,160],[289,1376,122,43,134,256],[1412,1307,164,62,92,164],[0,768,168,100,92,124],[301,436,79,113,178,140],[1133,768,106,98,150,148],[1531,0,171,133,88,86],[1702,436,108,110,148,164],[1811,185,178,121,78,132],[530,663,121,102,134,152],[148,663,128,103,128,154],[1108,1059,114,84,142,168],[1704,0,176,133,80,92],[1582,313,112,115,144,130],[1635,768,145,97,112,152],[561,313,146,119,110,146],[997,663,137,101,120,154],[1375,313,64,116,194,144],[1136,663,130,101,126,134],[657,768,130,99,126,146],[1590,1230,182,68,74,120],[522,185,146,125,110,134],[1204,1147,160,77,96,160],[825,1147,112,80,144,164],[0,1059,140,86,116,170],[0,313,156,121,100,120],[1351,967,120,88,136,152],[1882,0,86,131,170,108],[939,1147,97,80,158,168],[131,967,140,90,116,164],[1366,1147,91,77,166,176],[988,1230,102,72,154,178],[170,768,78,100,178,160],[1344,0,185,134,70,116],[1307,552,159,106,96,138],[777,436,146,111,110,150],[1795,870,149,91,108,148],[534,967,118,89,138,160],[742,1307,172,64,84,178],[1038,1147,164,79,92,168],[925,436,152,111,104,150],[1511,185,144,122,112,134],[1268,663,140,101,116,144],[250,768,124,100,132,142],[1410,663,146,101,110,144],[1441,313,139,116,118,138],[653,663,148,102,108,148],[656,870,166,94,88,156],[1459,1147,122,77,136,180],[380,1059,167,85,94,158],[1179,313,92,117,164,150],[145,552,102,109,154,148],[463,313,96,120,160,138],[1829,552,108,105,148,140],[1241,768,114,98,142,150],[803,663,88,102,168,148],[789,768,76,99,180,154],[1782,768,62,97,194,158],[1651,1059,118,83,138,170],[1224,1059,125,84,132,168],[824,870,70,94,186,154],[1079,436,108,111,148,142],[278,663,84,103,172,150],[1468,552,94,106,162,148],[896,870,76,94,180,156],[654,967,68,89,188,160],[974,870,67,94,190,160],[1558,663,76,101,180,154],[659,552,163,107,94,146],[1273,313,100,117,156,132],[178,436,121,114,140,136],[376,768,135,100,122,152],[1564,552,85,106,172,148],[1812,436,94,110,162,150],[709,313,108,119,150,136],[249,552,90,109,168,146]];
 const Worn = (() => {
   const VIEW_KEY = 'tabard-designer.view.v1';
-  const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might', chest: 0 };
-  const BELTS = ['none', 'might', 'lawbringer', 'giantstalker', 'nightslayer', 'prophecy', 'earthfury', 'arcanist', 'felheart', 'cenarion'];
+  const st = { view: 'crest', race: 'human', sex: 'male', close: false, belt: 'might', chest: 0, armor: 'none' };
+  const ARMOR = ['none', 'heroism', 'soulforge', 'beastmaster', 'darkmantle', 'virtuous', 'fivethunders', 'sorcerer', 'deathmist', 'feralheart'];
+  const BELTS = ['none', 'set', 'might', 'lawbringer', 'giantstalker', 'nightslayer', 'prophecy', 'earthfury', 'arcanist', 'felheart', 'cenarion'];
   const RACES = ['human', 'dwarf', 'nightelf', 'gnome', 'orc', 'scourge', 'tauren', 'troll', 'skyborne'];
   try { Object.assign(st, JSON.parse(localStorage.getItem(VIEW_KEY) || '{}')); } catch (e) { /* ignore */ }
   if (!BELTS.includes(st.belt)) st.belt = 'might';
+  if (!ARMOR.includes(st.armor)) st.armor = 'none';
+  if (st.belt === 'set' && st.armor === 'none') st.belt = 'none';
   if (!RACES.includes(st.race)) st.race = 'human'; // saved before Blood Elf and Draenei left the list
   st.chest = Math.max(0, Math.min(100, Math.round(+st.chest) || 0));
   const remember = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } };
-  const beltCache = new Map();
-  let beltImage = null;
-  async function loadBelt() {
-    const k = st.belt;
-    if (k === 'none') { beltImage = null; return; }
-    if (!beltCache.has(k)) beltCache.set(k, loadImg(`models/belts/${k}.webp`));
-    try { const img = await beltCache.get(k); if (st.belt === k) beltImage = img; }
-    catch (e) { beltCache.delete(k); if (st.belt === k) beltImage = null; }
-  }
+  // body layers: the belt (LegUpper, over the tabard) and a set's armour textures (under the tabard)
+  const layerCache = new Map();
+  const layer = async url => {
+    if (!url) return null;
+    if (!layerCache.has(url)) layerCache.set(url, loadImg(url));
+    try { return await layerCache.get(url); } catch (e) { layerCache.delete(url); return null; }
+  };
+  const beltUrl = () => st.belt === 'none' ? null
+    : st.belt !== 'set' ? `models/belts/${st.belt}.webp`
+    : st.armor !== 'none' && SETS && SETS.sets[st.armor] && SETS.sets[st.armor].belt ? `models/sets/${st.armor}-belt-${st.sex}.webp` : null;
+  const armorUrl = () => st.armor === 'none' ? null : `models/sets/${st.armor}-${st.sex}.webp`;
+  let beltImage = null, armorImage = null;
+  async function loadBelt() { const u = beltUrl(), img = await layer(u); if (beltUrl() === u) beltImage = img; }
+  async function loadArmor() { const u = armorUrl(), img = await layer(u); if (armorUrl() === u) armorImage = img; }
 
-  let boot = null, A = null, LUT = null, META = null;
+  let boot = null, A = null, LUT = null, META = null, SETS = null, gear = null;
+  const items = new Map();
   let renderer, scene, camera, rig, mesh = null, current = null, bodyCanvas, bodyTex, tabCanvas, layers;
   let angle = 0, goal = null, raf = 0, design = null, loadToken = 0;
   const models = new Map();
@@ -797,9 +822,10 @@ const Worn = (() => {
         try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); }
         catch (e) { const err = new Error('webgl'); err.webgl = true; throw err; }
       }
-      const [emb, bor, bgi, lut, meta] = await Promise.all([
+      const [emb, bor, bgi, lut, meta, sets] = await Promise.all([
         loadImg('img3d/emblems-ingame.webp'), loadImg('img3d/borders-ingame.webp'), loadImg('img3d/bg-ingame.webp'),
-        getBin('img3d/luts.b64.txt'), fetch('models/models.json').then(r => { if (!r.ok) throw new Error('models'); return r.json(); })]);
+        getBin('img3d/luts.b64.txt'), fetch('models/models.json').then(r => { if (!r.ok) throw new Error('models'); return r.json(); }),
+        fetch('models/sets/sets.json').then(r => r.ok ? r.json() : null).catch(() => null)]);
 
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.outputEncoding = THREE.sRGBEncoding;
@@ -820,7 +846,7 @@ const Worn = (() => {
       wireInput(cv);
       new ResizeObserver(resize).observe(cv);
       // assets go live last, so nothing tries to paint before the scene exists
-      A = { emblems: emb, borders: bor, bg: bgi }; LUT = new Uint8Array(lut); META = meta;
+      A = { emblems: emb, borders: bor, bg: bgi }; LUT = new Uint8Array(lut); META = meta; SETS = sets;
       resize();
     })();
     boot.catch(e => { if (!e || !e.webgl) boot = null; }); // a failed download may be retried; missing WebGL may not
@@ -867,6 +893,7 @@ const Worn = (() => {
     if (!current) return;
     const b = bodyCanvas.getContext('2d');
     b.drawImage(current.skin, 0, 0, 2048, 1024);
+    if (armorImage) b.drawImage(armorImage, 0, 0, 2048, 1024); // armour: legs, boots, chest, bracers, gloves
     b.drawImage(tabCanvas, 512, 0);                    // tabard: TorsoUpper + TorsoLower
     if (beltImage) b.drawImage(beltImage, 512, 384, 512, 256); // belt: LegUpper, over the waist
     // no belt: the tabard cloth and its border run on over the waist band (LegUpper rows 384-448), continuing the
@@ -893,30 +920,28 @@ const Worn = (() => {
       m.hairTex ? loadImg(`models/${key}-hair.webp`) : null,
       m.extraTex ? loadImg(`models/${key}-extra.webp`) : null,
       m.eyesTex ? loadImg(`models/${key}-eyes.webp`) : null]);
-    const ne = m.eyes || 0;
     const v = m.v; let o = 0;
     const pos = new Float32Array(buf, o, v * 3); o += v * 12;
     const uv = new Float32Array(buf, o, v * 2); o += v * 8;
     const nrm = new Int8Array(buf, o, v * 3); o += v * 3 + ((4 - (v * 3) % 4) % 4);
-    const idx = new Uint16Array(buf, o, m.body + m.hair + m.extra + ne);
+    const all = m.i32 ? new Uint32Array(buf, o, m.n) : new Uint16Array(buf, o, m.n); // every geoset, see m.geo
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3, true));
     g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    g.setIndex(new THREE.BufferAttribute(idx, 1));
-    g.addGroup(0, m.body, 0);
-    if (m.hair) g.addGroup(m.body, m.hair, 1);
-    if (m.extra) g.addGroup(m.body + m.hair, m.extra, 2);
-    if (ne) g.addGroup(m.body + m.hair + m.extra, ne, 3);
+    g.setIndex(new THREE.BufferAttribute(m.i32 ? new Uint32Array(m.n) : new Uint16Array(m.n), 1));
     const side = THREE.DoubleSide;
     const mats = [
       new THREE.MeshLambertMaterial({ map: bodyTex, side }),
       new THREE.MeshLambertMaterial({ map: hair ? texFrom(hair) : null, color: hair ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
       new THREE.MeshLambertMaterial({ map: extra ? texFrom(extra) : null, color: extra ? 0xffffff : 0x3a2a20, side, alphaTest: 0.3 }),
       new THREE.MeshLambertMaterial({ map: eyes ? texFrom(eyes) : null, color: eyes ? 0xffffff : 0x202020 })];
-    const out = { key, mesh: new THREE.Mesh(g, mats), skin, height: m.height };
+    const out = { key, meta: m, all, have: new Set(m.geo.map(e => e[0])), sel: '', mesh: new THREE.Mesh(g, mats), skin, height: m.height };
     out.mesh.frustumCulled = false; // the chest morph moves vertices past the original bounds
-    out.chest = buildChest(m, key.endsWith('_female') ? 'female' : 'male', pos, uv, nrm, idx);
+    // the chest takes every body geoset (armour ones move along), and hair and fur as the bare character has them
+    const pick = test => { const r = []; for (const [id, k, a, c] of m.geo) if (test(id, k)) for (let j = a; j < a + c; j++) r.push(all[j]); return r; };
+    out.chest = buildChest(m, key.endsWith('_female') ? 'female' : 'male', pos, uv, nrm,
+      pick((id, k) => k === 0), pick((id, k) => (k === 1 || k === 2) && m.base.includes(id)));
     if (out.chest) out.chest.attr = g.attributes.position;
     models.set(key, out);
     return out;
@@ -926,11 +951,11 @@ const Worn = (() => {
   // The chest is found in texture space, the way chest armour is: around the bra cup (female) or the nipple (male)
   // of the TorsoUpper section, given as u, v and a radius in pixels of a 1024x512 skin. Every race shares that layout.
   const CHEST = { female: [0.300, 0.176, 44], male: [0.322, 0.185, 50] };
-  function buildChest(m, sex, pos, uv, nrm, idx) {
+  function buildChest(m, sex, pos, uv, nrm, bodyIdx, otherIdx) {
     const h = m.height, [cu, cv, r] = CHEST[sex], ru = r / 1024, rv = r / 512;
     const body = new Uint8Array(m.v), other = new Uint8Array(m.v);
-    for (let k = 0; k < m.body; k++) body[idx[k]] = 1;
-    for (let k = m.body; k < m.body + m.hair + m.extra; k++) other[idx[k]] = 1;
+    for (const i of bodyIdx) body[i] = 1;
+    for (const i of otherIdx) other[i] = 1;
     // the hanging tabard flap also uses TorsoUpper texels: keep to the body above the waist band
     let waist = -Infinity;
     for (let i = 0; i < m.v; i++) {
@@ -1031,11 +1056,98 @@ const Worn = (() => {
     applyChest();
     return moving;
   }
+  // --- armour: geosets, helmet and shoulders ---
+  const group = id => Math.floor(id / 100);
+  function geosetsFor(md) {
+    const sel = new Set(md.meta.base), set = st.armor !== 'none' && SETS && SETS.sets[st.armor];
+    if (!set) return sel;
+    const swap = (g, id) => { for (const x of [...sel]) if (group(x) === g) sel.delete(x); if (id) sel.add(id); };
+    for (const [g, id] of Object.entries(set.geo)) if (md.have.has(id)) swap(+g, id);
+    // gloves cover the hands: an elf's separate hands (23xx) stay only when the gloves ask for them
+    if (!set.geo[23] && [...sel].some(x => group(x) === 4 && x > 401)) swap(23, 0);
+    const helm = set.helm && set.helm[md.key];
+    if (helm) for (const g of helm.hide) {
+      if (g === 0) { for (const x of [...sel]) if (x > 0 && x < 100) sel.delete(x); } // the hair, not the head
+      else swap(g, g === 7 && md.have.has(701) ? 701 : 0);
+    }
+    return sel;
+  }
+  function applyGeosets(md) {
+    const sel = geosetsFor(md), key = [...sel].sort((a, b) => a - b).join(',');
+    if (md.sel === key) return;
+    md.sel = key;
+    const g = md.mesh.geometry, ix = g.index.array;
+    g.clearGroups();
+    let n = 0;
+    for (let k = 0; k < 4; k++) { // body, hair, extra, eyes: one material each
+      const from = n;
+      for (const [id, kind, a, c] of md.meta.geo) if (kind === k && sel.has(id)) { ix.set(md.all.subarray(a, a + c), n); n += c; }
+      if (n > from) g.addGroup(from, n - from, k);
+    }
+    g.index.needsUpdate = true;
+  }
+  function itemMaterial(img, blend) {
+    const t = texFrom(img);
+    const o = { map: t, side: THREE.DoubleSide };
+    if (blend === 0) t.format = THREE.RGBFormat;              // opaque: the alpha channel means something else
+    else if (blend === 1) o.alphaTest = 0.5;                 // alpha key
+    else { o.transparent = true; o.depthWrite = false; if (blend >= 3) o.blending = THREE.AdditiveBlending; }
+    return blend >= 3 ? new THREE.MeshBasicMaterial(o) : new THREE.MeshLambertMaterial(o);
+  }
+  function loadItem(fid) {
+    if (!items.has(fid)) {
+      const p = (async () => {
+        const it = SETS.items[fid];
+        const tex = [...new Set(it.b.map(b => b[2]))];
+        const [buf, ...imgs] = await Promise.all([getBin(`models/items/${fid}.b64.txt`), ...tex.map(t => loadImg(`models/items/t${t}.webp`))]);
+        const img = new Map(tex.map((t, i) => [t, imgs[i]]));
+        const v = it.v; let o = 0;
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, o, v * 3), 3)); o += v * 12;
+        g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(buf, o, v * 2), 2)); o += v * 8;
+        g.setAttribute('normal', new THREE.BufferAttribute(new Int8Array(buf, o, v * 3), 3, true)); o += v * 3 + ((4 - (v * 3) % 4) % 4);
+        g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, o, it.n), 1));
+        const mats = [];
+        for (const [a, c, t, blend, env] of it.b) {
+          if (env) continue; // shine passes drawn with an environment map are left out
+          g.addGroup(a, c, mats.length); mats.push(itemMaterial(img.get(t), blend));
+        }
+        return { g, mats };
+      })();
+      p.catch(() => items.delete(fid)); // a failed download may be tried again
+      items.set(fid, p);
+    }
+    return items.get(fid);
+  }
+  async function dressGear(md, token) {
+    const set = st.armor !== 'none' && SETS && SETS.sets[st.armor], att = md.meta.att || {}, want = [];
+    if (set) {
+      const helm = set.helm && set.helm[md.key];
+      if (helm && att.helm) want.push([helm.m, att.helm]);
+      if (set.shoulderL && att.shoulderL) want.push([set.shoulderL, att.shoulderL]);
+      if (set.shoulderR && att.shoulderR) want.push([set.shoulderR, att.shoulderR]);
+    }
+    const parts = await Promise.all(want.map(([fid]) => loadItem(fid).catch(() => null)));
+    if (token !== loadToken) return;
+    if (gear) rig.remove(gear);
+    gear = new THREE.Group();
+    parts.forEach((p, i) => {
+      if (!p) return;
+      const it = new THREE.Mesh(p.g, p.mats);
+      it.matrixAutoUpdate = false; it.matrix.fromArray(want[i][1]); it.frustumCulled = false;
+      gear.add(it);
+    });
+    rig.add(gear);
+  }
+
   async function showModel() {
     const key = `${st.race}_${st.sex}`, token = ++loadToken;
     if (!current || current.key !== key) status('Loading the character…');
     try {
-      const md = await loadModel(key);
+      const [md] = await Promise.all([loadModel(key), loadArmor(), loadBelt()]);
+      if (token !== loadToken) return;
+      applyGeosets(md);
+      await dressGear(md, token);
       if (token !== loadToken) return;
       if (mesh) rig.remove(mesh);
       mesh = md.mesh; current = md; rig.add(mesh); resetChest();
@@ -1094,6 +1206,8 @@ const Worn = (() => {
     document.querySelectorAll('[data-sex]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sex === st.sex)));
     $('cam-close').setAttribute('aria-pressed', String(st.close));
     $('race').value = st.race;
+    $('armor').value = st.armor;
+    $('belt-set').hidden = $('belt-set').disabled = st.armor === 'none';
     $('belt').value = st.belt;
     $('chest').value = st.chest;
     $('chest').setAttribute('aria-valuetext', st.chest ? `${st.chest} percent larger` : 'In-game size');
@@ -1111,8 +1225,8 @@ const Worn = (() => {
       await showModel();
     } catch (e) {
       status(e && e.webgl
-        ? 'This browser could not start 3D graphics (WebGL), so the worn view is not available here. Turning on hardware acceleration in the browser settings usually fixes this.'
-        : 'The 3D view did not load. Check your connection, then press Worn in game again.');
+        ? 'This browser could not start 3D graphics (WebGL), so the Character view is not available here. Turning on hardware acceleration in the browser settings usually fixes this.'
+        : 'The 3D view did not load. Check your connection, then press Character again.');
     }
   }
   let designQueued = false;
@@ -1127,6 +1241,13 @@ const Worn = (() => {
     document.querySelectorAll('[data-sex]').forEach(b => b.addEventListener('click', () => { st.sex = b.dataset.sex; remember(); syncControls(); if (A) showModel(); }));
     $('race').addEventListener('change', e => { st.race = e.target.value; remember(); if (A) showModel(); });
     $('belt').addEventListener('change', async e => { st.belt = e.target.value; remember(); await loadBelt(); paintBody(); });
+    $('armor').addEventListener('change', e => {
+      const had = st.armor;
+      st.armor = e.target.value;
+      if (st.armor !== 'none' && (had === 'none' || st.belt === 'set')) st.belt = 'set'; // a set comes with its belt
+      else if (st.armor === 'none' && st.belt === 'set') st.belt = 'none';
+      remember(); syncControls(); if (A) showModel();
+    });
     $('chest').addEventListener('input', e => {
       const before = st.chest;
       st.chest = +e.target.value; remember();

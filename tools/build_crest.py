@@ -29,12 +29,46 @@ def grey_alpha(im):
     return Image.merge('LA', (im.convert('L'), im.split()[3]))
 
 
+# The Armory serves the wrong picture for two emblems: emblem_117 repeats the crossed hammers of 116 and emblem_144
+# the scroll of 143, where the game has crossed spears (vendor #118) and crossed pickaxes (#145). Those two are drawn
+# from the game's own white emblem texture, at the size, place and brightness the neighbour has against its texture.
+ARMORY_WRONG = {117: 116, 144: 143}
+
+
+def game_emblem(fid, e):
+    """the emblem as the game stores it: TorsoUpper + TorsoLower, rolled so it sits whole, cropped to its pixels"""
+    a = np.concatenate([np.roll(np.array(Image.open(file(fid[(e, 14, c)])).convert('RGBA')), 256, 1) for c in (3, 4)], 0)
+    ys, xs = np.where(a[..., 3] > 4)
+    return a[ys.min():ys.max() + 1, xs.min():xs.max() + 1].astype(np.float64)
+
+
+def from_game(sheet, e, ref):
+    fid = {(int(r['EmblemID']), int(r['Color']), int(r['Component'])): r['FileDataID'] for r in table('GuildTabardEmblem')}
+    tile = lambda i: np.array(sheet.crop(((i % 14) * 125, (i // 14) * 125, (i % 14) * 125 + 125, (i // 14) * 125 + 125)))
+    t = tile(ref).astype(np.float64)
+    ys, xs = np.where(t[..., 3] > 4)
+    g_ref, g = game_emblem(fid, ref), game_emblem(fid, e)
+    scale = ((np.ptp(xs) + 1) / g_ref.shape[1] + (np.ptp(ys) + 1) / g_ref.shape[0]) / 2
+    w, h = max(1, round(g.shape[1] * scale)), max(1, round(g.shape[0] * scale))
+    im = np.array(Image.fromarray(g.astype(np.uint8), 'RGBA').resize((w, h), Image.LANCZOS)).astype(np.float64)
+    lum = im[..., :3] @ np.array([0.299, 0.587, 0.114])
+    gain = highlight(t[t[..., 3] > 200][:, :3])[0] / highlight(np.repeat(lum[im[..., 3] > 200][:, None], 3, 1))[0]
+    grey = np.clip(lum * gain, 0, 255)
+    im = np.dstack([grey, grey, grey, im[..., 3]]).astype(np.uint8)
+    cx, cy = (xs.min() + xs.max() + 1) / 2, (ys.min() + ys.max() + 1) / 2
+    cell, art = Image.new('RGBA', (125, 125)), Image.fromarray(im, 'RGBA')
+    cell.paste(art, (round(cx - w / 2), round(cy - h / 2)), art)
+    sheet.paste(cell, ((e % 14) * 125, (e // 14) * 125))
+
+
 def build_art():
     out = os.path.join(DOCS, 'img')
     os.makedirs(out, exist_ok=True)
     sheet = Image.new('RGBA', (14 * 125, 14 * 125))
     for i in range(196):
         sheet.alpha_composite(Image.open(armory(f'emblem_{i:02d}')).convert('RGBA'), ((i % 14) * 125, (i // 14) * 125))
+    for e, ref in ARMORY_WRONG.items():
+        from_game(sheet, e, ref)
     grey_alpha(sheet).save(os.path.join(out, 'emblems.png'), optimize=True)
     strip = Image.new('RGBA', (6 * 147, 159))
     for i in range(6):
